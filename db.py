@@ -1,4 +1,4 @@
-import glob, json, os, uuid, shutil, io, csv, hashlib
+import os, hashlib
 from pymongo import MongoClient
 from bson import ObjectId
 

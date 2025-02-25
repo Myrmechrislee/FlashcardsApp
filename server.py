@@ -1,5 +1,5 @@
-from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session, url_for
-import json, random, uuid, db, io, csv, pandas as pd
+from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session
+import random, db, io, csv, pandas as pd
 
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
