@@ -4,7 +4,8 @@ import json, random, uuid, db, io, csv, pandas as pd
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.secret_key = uuid.uuid4().hex
+app.secret_key = "ce4f9f579b2a22b536d9fa989b0847ce"
+app.config['SESSION_COOKIE_NAME'] = "flask_app_session"
 
 @app.route('/topics', methods=["GET", "POST"])
 def topics():
