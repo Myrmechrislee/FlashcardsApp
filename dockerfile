@@ -11,5 +11,6 @@ COPY . .
 EXPOSE 80
 
 ENV FLASK_APP=server.py
+ENV MONGO_URL="mongodb://mongodb:27017/flashcards"
 
 ENTRYPOINT ["gunicorn", "server:app"]
