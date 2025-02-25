@@ -10,4 +10,6 @@ COPY . .
 
 EXPOSE 80
 
-ENTRYPOINT ["gunicorn", "app:app"]
+ENV FLASK_APP=server.py
+
+ENTRYPOINT ["gunicorn", "server:app"]
