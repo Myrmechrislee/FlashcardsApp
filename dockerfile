@@ -8,7 +8,7 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 
-EXPOSE 80
+EXPOSE 443
 
 ENV FLASK_APP=server.py
 ENV MONGO_URL="mongodb://mongodb:27017/flashcards"
