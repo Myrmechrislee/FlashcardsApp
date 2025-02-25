@@ -2,7 +2,7 @@ import glob, json, os, uuid, shutil, io, csv, hashlib
 from pymongo import MongoClient
 from bson import ObjectId
 
-client = MongoClient("mongodb://localhost:27017/flashcards")
+client = MongoClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017/flashcards"))
 db = client["flashcards"]
 salt = "558f455d7315ce54148b6f0628ae6f3f"
 
