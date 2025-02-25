@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Topic</title>
+  <style>
+    body {
+      background-color: #f8f8f8;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .form-container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    h2, h3 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 18px;
+      font-family: monospace;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    .question-container {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+    .delete-btn {
+      padding: 10px 20px;
+      border: 2px solid red;
+      border-radius: 8px;
+      background: transparent;
+      color: red;
+      font-size: 16px;
+      font-family: monospace;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      align-self: flex-start;
+    }
+    .delete-btn:hover {
+      background: red;
+      color: white;
+    }
+    .button-group button {
+      padding: 15px 30px;
+      border: 2px solid;
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.3s, color 0.3s;
+      font-size: 18px;
+      font-family: monospace;
+      margin-top: 10px;
+      border-image-slice: 1;
+      border-image-source: linear-gradient(135deg, #667eea, #764ba2);
+      color: #667eea;
+    }
+    .button-group button:disabled {
+      opacity: 0.5;
+    }
+    .button-group button:hover:enabled {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    .back-button{
+      color: grey;
+      text-decoration: none;
+      font-size: 18px;
+      font-family: monospace;
+      margin-top: 10px;
+      margin-left: 10px;
+    }
+    .delete-topic-btn {
+      color: red !important;
+      border: 2px solid red !important;
+    }
+    .delete-topic-btn:hover {
+      background: red !important;
+      color: white !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Edit Topic</h2>
+    <form action="/edit-topic/{{ topic._id }}" method="POST" oninput="validateForm()">
+      <h3>Topic Title</h3>
+      <input type="text" name="title" value="{{ topic.title }}" required>
+
+      <h3>Questions and Answers</h3>
+      <div id="questions-container">
+      {% for question in topic.questions %}
+        <div class="question-container">
+          <input type="text" name="questions[]" value="{{ question.question }}" required>
+          <textarea name="answers[]" required>{{ question.answer }}</textarea>
+          
+          <!-- Confidence Select Dropdown -->
+          <label for="confidence-{{ loop.index }}" style="display: block; font-size: 18px; font-family: monospace; color: #667eea; margin-bottom: 5px;">Confidence: </label>
+          <select name="confidence[]" id="confidence-{{ loop.index }}" style="width: 100%; padding: 15px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 18px; font-family: monospace;" onchange="updateSelectColor(this)">
+            <option value="2" style="color: green;" {% if question.confidence == 2 %}selected{% endif %}>Confident</option>
+            <option value="1" style="color: orange;" {% if question.confidence == 1 %}selected{% endif %}>Not sure</option>
+            <option value="0" style="color: red;" {% if question.confidence == 0 %}selected{% endif %}>Not confident</option>
+          </select>
+          
+          <button type="button" class="delete-btn" onclick="this.parentElement.remove(); validateForm();">Delete</button>
+        </div>
+        {% endfor %}
+        
+      </div>
+      <div class="button-group">
+        <button type="button" onclick="addQuestion()">Add Question</button>
+        <button type="submit" id="save-btn" disabled>Save Changes</button>
+        <button type="button" class="delete-topic-btn" onclick="confirmDelete()">Delete Topic</button>
+        <a href="/topic-start/{{topic._id}}" class="back-button">Go Back</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function updateSelectColor(selectElement) {
+      let color = "";
+      switch (selectElement.value) {
+        case "2":
+          color = "green";
+          break;
+        case "1":
+          color = "orange";
+          break;
+        case "0":
+          color = "red";
+          break;
+      }
+      selectElement.style.color = color;
+    }
+    
+    document.querySelectorAll('select[name="confidence[]"]').forEach(select => updateSelectColor(select));
+    
+    function addQuestion() {
+      const container = document.getElementById('questions-container');
+      const questionContainer = document.createElement('div');
+      questionContainer.className = 'question-container';
+      
+      const questionInput = document.createElement('input');
+      questionInput.type = 'text';
+      questionInput.name = 'questions[]';
+      questionInput.placeholder = 'Enter a question';
+      questionInput.required = true;
+      
+      const answerInput = document.createElement('textarea');
+      answerInput.name = 'answers[]';
+      answerInput.placeholder = 'Enter the answer';
+      answerInput.required = true;
+      
+      const label = document.createElement('label');
+      label.textContent = 'Confidence:';
+      label.style.display = 'block';
+      label.style.fontSize = '18px';
+      label.style.fontFamily = 'monospace';
+      label.style.color = '#667eea';
+      label.style.marginBottom = '5px';
+      
+      const select = document.createElement('select');
+      select.name = 'confidence[]';
+      select.style.width = '100%';
+      select.style.padding = '15px';
+      select.style.marginBottom = '10px';
+      select.style.border = '1px solid #ddd';
+      select.style.borderRadius = '8px';
+      select.style.boxSizing = 'border-box';
+      select.style.fontSize = '18px';
+      select.style.fontFamily = 'monospace';
+      select.onchange = function() { updateSelectColor(this); };
+      
+      const options = [
+        { value: "2", text: "Confident", color: "green" },
+        { value: "1", text: "Not sure", color: "orange" },
+        { value: "0", text: "Not confident", color: "red" }
+      ];
+      
+      options.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.text;
+        option.style.color = opt.color;
+        select.appendChild(option);
+      });
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = function() { container.removeChild(questionContainer); validateForm(); };
+      
+      questionContainer.appendChild(questionInput);
+      questionContainer.appendChild(answerInput);
+      questionContainer.appendChild(label);
+      questionContainer.appendChild(select);
+      questionContainer.appendChild(deleteBtn);
+      
+      container.appendChild(questionContainer);
+
+      updateSelectColor(select)
+      validateForm();
+    }
+
+    function validateForm() {
+      const inputs = document.querySelectorAll('input[name="questions[]"], textarea[name="answers[]"]');
+      const saveButton = document.getElementById('save-btn');
+      let isValid = true;
+      
+      inputs.forEach(input => {
+        if (input.value.trim() === '') {
+          isValid = false;
+        }
+      });
+      
+      saveButton.disabled = !isValid;
+    }
+    function confirmDelete() {
+      if (confirm("Are you sure you want to delete this topic?")) {
+        window.location.href = "/delete-topic/{{ topic._id }}";
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashcard Topic Selection</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .topic-selection {
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 30px;
+      font-size: 36px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 15px 0;
+    }
+    .topic-link {
+      display: inline-block;
+      padding: 20px 40px;
+      font-size: 24px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      transition: transform 0.2s, background-color 0.3s;
+    }
+    .topic-link:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+      transform: scale(1.05);
+    }
+    .text-button {
+      display: inline;
+      margin: 10px;
+      font-size: 18px;
+      color: white;
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .text-button:hover {
+      color: 
+      rgba(255, 255, 255, 0.7);
+    }
+    .profile-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .profile-pic {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background-color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .popup-menu {
+      display: none;
+      position: absolute;
+      bottom: 80px;
+      right: 0;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      width: 150px;
+    }
+    .popup-option {
+      color: black;
+      text-decoration: none;
+      font-size: 18px;
+      display: block;
+      padding: 8px 12px;
+    }
+    .popup-option:hover {
+      background: #f0f0f0;
+      border-radius: 5px;
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="topic-selection">
+    <h1>Select a Topic</h1>
+    <ul>
+        {% for t in topics %} 
+            <li><a href="/topic-start/{{t["_id"]}}" class="topic-link">{{t["title"]}}</a></li>
+        {% endfor %}
+    </ul>
+    <a href="/add-topic" class="text-button">Add Topic</a> |
+    <a href="/import-topic" class="text-button">Import Topic</a>
+  </div>
+  <div class="profile-container">
+    <img src="/profile-placeholder.png" alt="Profile" class="profile-pic" onclick="toggleMenu()">
+    <div class="popup-menu" id="popupMenu">
+      <a href="/signout" class="popup-option">Sign Out</a>
+    </div>
+  </div>
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("popupMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+    
+    document.addEventListener("click", function(event) {
+      const menu = document.getElementById("popupMenu");
+      const profilePic = document.querySelector(".profile-pic");
+      if (!menu.contains(event.target) && !profilePic.contains(event.target)) {
+        menu.style.display = "none";
+      }
+    });
+    </script>  
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+    "title": "Ant Trivia",
+    "id": "69fb1b157e774241a97caafbca0d4ca7",
+    "questions": [
+        {
+            "id": 0,
+            "question": "Can you eat honey ants?",
+            "answer": "Yes",
+            "confidence": 2
+        },
+        {
+            "id": 1,
+            "question": "Can fire ants swim?",
+            "answer": "Yes",
+            "confidence": 0
+        },
+        {
+            "id": 2,
+            "question": "What ant deliver's the most painful bite?",
+            "answer": "Bullet ants",
+            "confidence": 1
+        }
+    ]
+}
