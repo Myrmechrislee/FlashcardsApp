@@ -102,7 +102,8 @@ def add_user(name, email, password):
         "name": name,
         "email": email,
         "password_hash": password_hash,
-        "topics": []
+        "topics": [],
+        "profile_pic": ""
     })
 
 def update_profile_picture(email, profile_pic):
