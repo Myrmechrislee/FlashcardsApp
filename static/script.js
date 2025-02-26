@@ -30,6 +30,3 @@ function submitResponse(response) {
       .then(data => console.log(data))
       .catch(err => console.error(err));
 }
-function nextQuestion() {
-    window.location.reload()
-}

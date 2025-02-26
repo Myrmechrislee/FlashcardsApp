@@ -12,8 +12,8 @@ def topics():
     if "email" not in session:
         return redirect(f'/?next={request.url}')
     return render_template("topics.html", user=db.get_user(session["email"]), topics=db.get_topics(session["email"]))
-@app.route("/flash/<tid>")
-def flashcard(tid):
+@app.route("/flash/<tid>/<qid>")
+def flashcard(tid, qid):
     if "email" not in session:
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(tid)
@@ -21,15 +21,31 @@ def flashcard(tid):
         return "topic not found", 404
     if not db.has_access_to_topic(session["email"], tid):
         return "No access", 403
+    questions = topic["questions"]
+    question = [q for q in questions if str(q["id"]) == str(qid)]
+    if len(question) == 0:
+        return "question not found", 404
+    return render_template("flash.html", t=db.get_topic(tid), question=question[0])
+
+@app.route("/flash/<tid>")
+def flash_card_random(tid):
+    if "email" not in session:
+        return redirect(f'/?next={request.url}')
+    topic = db.get_topic(tid)
+    if topic == None:
+        return "topic not found", 404
+    if not db.has_access_to_topic(session["email"], tid):
+        return "No access", 403
+    topic = db.get_topic(tid)
     question = random.choice(topic["questions"])
-    return render_template("flash.html", t=db.get_topic(tid), question=question)
+    return redirect(f"/flash/{tid}/{question['id']}")
+    
 
 @app.route("/submitconfidence", methods=["POST"])
 def submit_confidence():
     data = request.get_json()
     if 'confidence' in data and 'qid' in data and 'tid' in data:
         m = db.update_confidence(data["tid"], data["qid"], data["confidence"])
-        print(m)
         return jsonify({"message": "success"})
     else:
         message = jsonify({"error": "Missing 'qid', 'tid' or 'confidence' property"})

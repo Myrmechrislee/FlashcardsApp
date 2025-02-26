@@ -124,7 +124,7 @@
     </style>
 </head>
 <body>
-    <a href="/topic-start/{{t["_id"]}}" class="back-button">Go Back</a>
+    <a href="/topic-start/{{t['_id']}}" class="back-button">Go Back</a>
     <h1>{{t["title"]}}</h1>
     <div class="card" id="flashcard" onclick="flipCard()">
         <div class="front" id="front-text">{{question["question"]}}</div>
@@ -138,7 +138,7 @@
         <button onclick="submitResponse(2)">Understood</button>
     </div>
     <script>
-        window.tid = "{{t["_id"]}}"
+        window.tid = "{{t['_id']}}"
         window.qid = {{question["id"]}}
         
         function adjustFontSize() {
@@ -153,6 +153,9 @@
         }
         window.onload = () => {
             adjustFontSize()
+        }
+        function nextQuestion() {
+            window.location.href = `/flash/${window.tid}`
         }
     </script>
     <script src="/script.js"></script>
