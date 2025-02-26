@@ -55,8 +55,7 @@
       transition: color 0.3s ease;
     }
     .text-button:hover {
-      color: 
-      rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.7);
     }
     .profile-container {
       position: fixed;
@@ -96,7 +95,6 @@
       background: #f0f0f0;
       border-radius: 5px;
     }
-    
   </style>
 </head>
 <body>
@@ -104,15 +102,20 @@
     <h1>Select a Topic</h1>
     <ul>
         {% for t in topics %} 
-            <li><a href="/topic-start/{{t["_id"]}}" class="topic-link">{{t["title"]}}</a></li>
+            <li><a href="/topic-start/{{t['_id']}}" class="topic-link">{{t['title']}}</a></li>
         {% endfor %}
     </ul>
     <a href="/add-topic" class="text-button">Add Topic</a> |
     <a href="/import-topic" class="text-button">Import Topic</a>
   </div>
   <div class="profile-container">
-    <img src="/profile-placeholder.png" alt="Profile" class="profile-pic" onclick="toggleMenu()">
+    {% if user['profile_pic'] == "" %}
+        <img src="/profile-placeholder.png" alt="Profile Picture" class="profile-pic" id="profile-pic" onclick="toggleMenu()">
+    {% else %}
+        <img src="/uploads/{{user['profile_pic']}}" alt="Profile Picture" class="profile-pic" id="profile-pic" onclick="toggleMenu()">
+    {% endif %}
     <div class="popup-menu" id="popupMenu">
+      <a href="/edit-profile" class="popup-option">Edit Profile</a>
       <a href="/signout" class="popup-option">Sign Out</a>
     </div>
   </div>
@@ -129,6 +132,6 @@
         menu.style.display = "none";
       }
     });
-    </script>  
+  </script>  
 </body>
 </html>

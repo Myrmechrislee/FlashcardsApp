@@ -1,5 +1,5 @@
-from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session
-import random, db, io, csv, pandas as pd
+from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session, send_file
+import random, db, io, csv, pandas as pd, re
 
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
@@ -11,7 +11,7 @@ app.config['SESSION_COOKIE_NAME'] = "flask_app_session"
 def topics():
     if "email" not in session:
         return redirect(f'/?next={request.url}')
-    return render_template("topics.html", topics=db.get_topics(session["email"]))
+    return render_template("topics.html", user=db.get_user(session["email"]), topics=db.get_topics(session["email"]))
 @app.route("/flash/<tid>")
 def flashcard(tid):
     if "email" not in session:
@@ -161,5 +161,56 @@ def create_account():
         flash("Account successfully added!")
         return render_template("create-account.html")
     return render_template("create-account.html")
+
+@app.route("/edit-profile", methods=["GET", "POST"])
+def edit_profile():
+    if "email" not in session:
+        return redirect(f'/?next={request.url}')
+    if request.method == "POST":
+        try:
+            if "profile-pic" in request.files:
+                file = request.files.get("profile-pic")
+                if file.filename != "":
+                    db.update_profile_picture(session["email"], file)
+                email = request.form.get("email")
+                if email != session["email"]:
+                    if db.email_already_exists(email):
+                        flash("Email already exists", "error")
+                        return render_template("edit-profile.html", user=db.get_user(session["email"]))
+                    if re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email) is None:
+                        flash("Invalid email address", "error")
+                        return render_template("edit-profile.html", user=db.get_user(session["email"]))
+                    db.update_email(session["email"], email)
+                    session["email"] = email
+                name = request.form.get("name")
+                db.update_name(session["email"], name)
+        except Exception as e:
+            raise e
+            flash("There has been a problem updating your account", "error")
+        else:
+            flash("Account successfully updated!", "success")
+    return render_template("edit-profile.html", user=db.get_user(session["email"]))
+
+@app.route("/uploads/<file_id>")
+def uploads(file_id):
+    try:
+        file = db.get_upload(file_id)
+        return send_file(io.BytesIO(file.read()), mimetype=file.content_type)
+    except Exception as e:
+        return "File not found", 404
+
+@app.route("/change-password", methods=["GET", "POST"])
+def change_password():
+    if request.method == 'POST':
+        new_password = request.form.get('new-password')
+        confirm_password = request.form.get('confirm-password')
+
+        if new_password != confirm_password:
+            flash('Passwords do not match. Please try again.', 'error')
+        else:
+            db.update_password(session["email"], new_password)
+            flash('Password changed successfully!', 'success')
+    return render_template("change-password.html")
 if __name__ == '__main__':
     app.run(debug=True)
+

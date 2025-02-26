@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile</title>
+  <style>
+    body {
+      background-color: #f8f8f8;
+      font-family: monospace;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+    .sidebar {
+      width: 250px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 0;
+      display: block;
+      background: transparent;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover, .selected {
+      background: rgba(255, 255, 255, 0.2);
+      padding-left: 10px;
+      border-radius: 5px;
+    }
+    .main-content {
+      flex-grow: 1;
+      background: white;
+      padding: 40px;
+      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+    }
+    .back-button {
+      padding: 15px 30px;
+      border-radius: 8px;
+      background: #667eea;
+      cursor: pointer;
+      font-size: 18px;
+      font-family: monospace;
+      color: white;
+      transition: background 0.3s, color 0.3s;
+    }
+    button:hover {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+    button:focus {
+      outline: none;
+      box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+    }
+    
+    .profile-pic-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 20px;
+      width: 120px; /* Adjust size as needed */
+      height: 120px; /* Adjust size as needed */
+      overflow: hidden;
+      border-radius: 50%; /* Make the container circular */
+      border: 2px solid #ddd; /* Add border to the container */
+      cursor: pointer; /* Indicate that the container is clickable */
+    }
+    .profile-pic {
+      width: 100%; /* Make the image fill the container */
+      height: 100%; /* Make the image fill the container */
+      object-fit: cover; /* Ensure the image covers the container */
+      transition: filter 0.3s; /* Smooth transition for the filter effect */
+    }
+    .profile-pic-container:hover .profile-pic {
+      filter: brightness(0.25); /* Darken the image on hover */
+    }
+    .change-pic {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: #00bfff; /* Bright blue text */
+      border-radius: 50%;
+      font-size: 14px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0; /* Hidden by default */
+      transition: opacity 0.3s; /* Smooth transition for opacity */
+    }
+    .profile-pic-container:hover .change-pic {
+      opacity: 1; /* Show the "Change Picture" text on hover */
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+      font-family: monospace;
+    }
+    button {
+      padding: 15px 30px;
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      background: white; /* White background by default */
+      cursor: pointer;
+      font-size: 18px;
+      font-family: monospace;
+      color: #667eea; /* Blue text by default */
+      transition: background 0.3s, color 0.3s;
+    }
+    button:hover {
+      background: #667eea; /* Blue background on hover */
+      color: white; /* White text on hover */
+    }
+
+    /* Flash messages styling */
+    .flash-messages {
+      margin-bottom: 20px;
+    }
+    .flash-message {
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .flash-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .flash-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="/topics" class="back-button">⬅ Go Back</a>
+    <a href="#" class="selected">Profile</a>
+    <a href="/change-password">Change Password</a>
+    <a href="/signout">Sign Out</a>
+  </div>
+  <div class="main-content">
+    <h2>Edit Profile</h2>
+
+    <!-- Flash messages section -->
+    <div class="flash-messages">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <div class="profile-pic-container" id="profile-pic-container">
+        {% if user['profile_pic'] == "" %}
+            <img src="/profile-placeholder.png" alt="Profile Picture" class="profile-pic" id="profile-pic">
+        {% else %}
+            <img src="/uploads/{{user['profile_pic']}}" alt="Profile Picture" class="profile-pic" id="profile-pic">
+        {% endif %}
+      <span class="change-pic">Change Picture</span>
+    </div>
+    
+    <form action="/edit-profile" method="POST" enctype="multipart/form-data">
+      <input type="file" id="file-input" name="profile-pic" class="file-input" accept=".png, .jpg, .jpeg" hidden>
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" value="{{ user.name }}" required>
+      
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="{{ user.email }}" required>
+      
+      <button type="submit">Save Changes</button>
+    </form>
+  </div>
+
+  <script>
+    // JavaScript to handle image upload
+    const profilePicContainer = document.getElementById('profile-pic-container');
+    const fileInput = document.getElementById('file-input');
+    const profilePic = document.getElementById('profile-pic');
+
+    // Trigger file input when the profile-pic-container is clicked
+    profilePicContainer.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // Handle file selection
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          // Update the profile picture with the selected image
+          profilePic.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+</html>

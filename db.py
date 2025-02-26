@@ -1,14 +1,18 @@
 import os, hashlib
 from pymongo import MongoClient
+import gridfs
 from bson import ObjectId
 
 client = MongoClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017/flashcards"))
 db = client["flashcards"]
 salt = "558f455d7315ce54148b6f0628ae6f3f"
+fs = gridfs.GridFS(db)
 
 def get_user(email):
-    return db.users.find_one({"email": email}, {"topics": 1})
+    return db.users.find_one({"email": email})
 
+def get_upload(file_id):
+    return fs.get(ObjectId(file_id))
 def update_confidence(tid, qid, c):
     return db.topics.update_one({
         "_id": ObjectId(tid),
@@ -100,3 +104,20 @@ def add_user(name, email, password):
         "password_hash": password_hash,
         "topics": []
     })
+
+def update_profile_picture(email, profile_pic):
+    file_id = fs.put(profile_pic, filename=profile_pic.filename, content_type=profile_pic.content_type)
+    db.users.update_one({"email": email}, {"$set": {"profile_pic": file_id}})
+
+def email_already_exists(email):
+    return db.users.find_one({"email": email}) != None
+
+def update_email(email_old, email_new):
+    return db.users.update_one({"email": email_old}, {"$set": {"email": email_new}})
+
+def update_name(email, name):
+    return db.users.update_one({"email": email}, {"$set": {"name": name}})
+
+def update_password(email, password):
+    password_hash = hashlib.md5((salt + password).encode()).hexdigest()
+    return db.users.update_one({"email": email}, {"$set": {"password_hash": password_hash}})
