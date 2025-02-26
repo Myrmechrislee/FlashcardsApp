@@ -20,6 +20,7 @@
       display: flex;
       flex-direction: column;
       padding: 20px;
+      justify-content: space-between; /* This will push the signout link to the bottom */
     }
     .sidebar a {
       color: white;
@@ -153,9 +154,11 @@
 </head>
 <body>
   <div class="sidebar">
-    <a href="/topics" class="back-button">⬅ Go Back</a>
-    <a href="#" class="selected">Profile</a>
-    <a href="/change-password">Change Password</a>
+    <div class="top-links">
+      <a href="/topics" class="back-button">⬅ Go Back</a>
+      <a href="#" class="selected">Profile</a>
+      <a href="/change-password">Change Password</a>
+    </div>
     <a href="/signout">Sign Out</a>
   </div>
   <div class="main-content">
