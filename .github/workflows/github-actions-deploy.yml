@@ -20,9 +20,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /Projects/FlashcardsApp
-            git pull
-            docker build -t flashcards-app:latest .
-            docker stop flashcards-web-app
-            docker rm flashcards-web-app
+            cd ~/Projects/FlashcardsApp && \
+            git pull && \
+            docker build -t flashcards-app:latest . && \
+            docker stop flashcards-web-app && \
+            docker rm flashcards-web-app && \
             docker run -p 8080:8080 -d --network mongo-network --name flashcards-web-app flashcards-app:latest
