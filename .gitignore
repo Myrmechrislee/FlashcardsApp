@@ -1,0 +1,6 @@
+dbs/test*
+share*
+lib*
+.git/*
+**/*.pyc
+.venv/*
