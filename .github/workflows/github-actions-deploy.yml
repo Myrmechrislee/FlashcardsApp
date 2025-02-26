@@ -1,0 +1,28 @@
+name: Deploy Web App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: SSH into Server and Deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /Projects/FlashcardsApp
+            git pull
+            docker build -t flashcards-app:latest .
+            docker stop flashcards-web-app
+            docker rm flashcards-web-app
+            docker run -p 8080:8080 -d --network mongo-network --name flashcards flashcards-app:latest
