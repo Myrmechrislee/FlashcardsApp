@@ -4,7 +4,7 @@ import gridfs
 from bson import ObjectId
 
 client = MongoClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017/flashcards"))
-db = client["flashcards"]
+db = client.get_database()
 salt = "558f455d7315ce54148b6f0628ae6f3f"
 fs = gridfs.GridFS(db)
 

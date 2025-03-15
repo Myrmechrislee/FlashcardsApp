@@ -4,3 +4,7 @@ lib*
 .git/*
 **/*.pyc
 .venv/*
+.vscode*
+.DS_Store*
+.qodo
+.gitignore
