@@ -2,6 +2,7 @@ import os, hashlib
 from pymongo import MongoClient
 import gridfs
 from bson import ObjectId
+from datetime import datetime
 
 client = MongoClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017/flashcards"))
 db = client.get_database()
@@ -122,3 +123,52 @@ def update_name(email, name):
 def update_password(email, password):
     password_hash = hashlib.md5((salt + password).encode()).hexdigest()
     return db.users.update_one({"email": email}, {"$set": {"password_hash": password_hash}})
+
+def has_access_to_quiz(email, quizid):
+    return ObjectId(quizid) in db.users.find_one({"email": email})["quizes"]
+def generate_quiz(email, tid, questions):
+    id = db.quizes.insert_one({
+        'topic_id': ObjectId(tid),
+        'questions': questions,
+        'time-start': datetime.now()
+    }).inserted_id
+    db.users.update_one({'email': email}, {'$push': {'quizes': id}})
+    return id
+
+def get_quiz(quizid):
+    return db.quizes.find_one({'_id': ObjectId(quizid)})
+
+def update_quiz_response(quizid, questionid, is_correct):
+    db.quizes.update_one({'_id': ObjectId(quizid), "questions.id": int(questionid)}, {"$set": {'questions.$.correct': is_correct}})
+    remaining = [q for q in get_quiz(quizid)['questions'] if 'correct' not in q.keys()]
+    if len(remaining) > 0:
+        return remaining[0]
+    return None
+
+def finish_quiz(quizid):
+    db.quizes.update_one({'_id': ObjectId(quizid)}, {"$set": {"time-end": datetime.now()}})
+def get_quiz_stats(quizid):
+    quiz = get_quiz(quizid)
+    questions = quiz['questions']
+    correct = len([q for q in questions if q['correct']])
+    total_questions = len(questions)
+    return {
+        'tid': quiz['topic_id'],
+        'time_taken': format_timedelta(quiz['time-end'] - quiz['time-start']),
+        'total_questions': total_questions,
+        'correct_answers': correct,
+        'accuracy': correct / float(total_questions) * 100
+    }
+
+def format_timedelta(td):
+    """Convert a timedelta object into a human-readable string."""
+    total_seconds = int(td.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if hours > 0:
+        return f"{hours} hours, {minutes} minutes, and {seconds} seconds"
+    elif minutes > 0:
+        return f"{minutes} minutes and {seconds} seconds"
+    else:
+        return f"{seconds} seconds"

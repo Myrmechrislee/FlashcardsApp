@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Card Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        .card {
+            background: white;
+            width: 500px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            font-size: 32px;
+            cursor: pointer;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+            position: relative;
+            white-space: pre-line;
+            padding: 20px;
+        }
+        .card .front, .card .back {
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            word-wrap: break-word;
+            text-align: center;
+            overflow-y: auto;
+        }
+        .card .back {
+            transform: rotateY(180deg);
+        }
+        .card .scrollable {
+            justify-content: flex-start;
+            padding-top: 10px;
+            font-size: 15px;
+            text-align: left;
+        }
+        .card div {
+            font-size: 2em;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            word-wrap: break-word;
+        }
+        .card div.shrink {
+            font-size: 1em;
+        }
+        .response-prompt {
+            margin-top: 20px;
+            display: none;
+        }
+        .response-prompt a {
+            margin: 10px; /* Increased margin */
+            padding: 20px 40px; /* Increased padding */
+            font-size: 24px; /* Increased font size */
+            cursor: pointer;
+            border: 2px solid;
+            border-radius: 10px; /* Slightly larger border radius */
+            text-decoration: none;
+            transition: background-color 0.3s, color 0.3s;
+            display: inline-block; /* Ensure buttons are inline-block */
+        }
+        .response-prompt a.yes {
+            border-color: green;
+            color: green;
+        }
+        .response-prompt a.yes:hover {
+            background-color: green;
+            color: white;
+        }
+        .response-prompt a.no {
+            border-color: red;
+            color: red;
+        }
+        .response-prompt a.no:hover {
+            background-color: red;
+            color: white;
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .back-button:hover {
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <a href="/topic-start/{{t['_id']}}" class="back-button">Go Back</a>
+    <h1>{{t["title"]}}</h1>
+    <div class="card" id="flashcard" onclick="flipCard()">
+        <div class="front" id="front-text">{{question["question"]}}</div>
+        <div class="back" id="back-text">{{question["answer"]}}</div>
+    </div>
+    <div class="response-prompt" id="response-prompt">
+        <p>Did you get it correct?</p>
+        <a href="/answer-quizlet/{{quizid}}/{{qid}}?response=yes" class="yes">Yes</a>
+        <a href="/answer-quizlet/{{quizid}}/{{qid}}?response=no" class="no">No</a>
+    </div>
+    <script>
+        function adjustFontSize() {
+            let frontText = document.getElementById("front-text");
+            let backText = document.getElementById("back-text");
+            
+            [frontText, backText].forEach(element => {
+                if (element.scrollHeight > element.clientHeight) {
+                    element.classList.add("scrollable");
+                }
+            });
+        }
+        window.onload = () => {
+            adjustFontSize()
+        }
+        let flipped = false;
+        function flipCard() {
+            const card = document.getElementById('flashcard');
+            const responsePrompt = document.getElementById('response-prompt');
+            if (!flipped) {
+                card.style.transform = 'rotateY(180deg)';
+                responsePrompt.style.display = 'block';
+            } else {
+                card.style.transform = 'rotateY(0deg)';
+                responsePrompt.style.display = 'none';
+            }
+            flipped = !flipped;
+        }
+    </script>
+</body>
+</html>

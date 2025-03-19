@@ -27,8 +27,62 @@ def flashcard(tid, qid):
         return "question not found", 404
     return render_template("flash.html", t=db.get_topic(tid), question=question[0])
 
+@app.route("/quiz/<tid>")
+def quiz(tid):
+    if "email" not in session:
+        return redirect(f'/?next={request.url}')
+    topic = db.get_topic(tid)
+    if topic == None:
+        return "topic not found", 404
+    if not db.has_access_to_topic(session["email"], tid):
+        return "No access", 403
+    
+    questions = topic['questions']
+    if request.args.get('randomize', default=False, type=bool):
+        questions = random.sample(questions, len(questions))
+    if request.args.get('skip-confident', default=False, type=bool):
+        questions = [q for q in questions if int(q['confidence']) != 2]
+    id = db.generate_quiz(session['email'], tid, questions)
+
+    return redirect(f'/quizlet/{id}/{questions[0]["id"]}')
+
+@app.route("/quizlet/<quizid>/<qid>")
+def quizlet(quizid, qid):
+    if "email" not in session:
+        return redirect(f'/?next={request.url}')
+    if not db.has_access_to_quiz(session["email"], quizid):
+        return "No access", 403
+    quiz = db.get_quiz(quizid)
+    questions = quiz['questions']
+    question = [q for q in questions if str(q['id']) == qid]
+    if len(question) == 0:
+        return "Question not found", 404
+    return render_template("/quizlet.html", t=db.get_topic(quiz["topic_id"]), quizid=quizid, qid=qid, question=question[0])
+
+@app.route("/answer-quizlet/<quizid>/<qid>")
+def answer_quizlet(quizid, qid):
+    if "email" not in session:
+        return redirect(f'/?next={request.url}')
+    if not db.has_access_to_quiz(session["email"], quizid):
+        return "No access", 403
+    response = request.args.get("response")
+    if response not in ["yes", "no"]:
+        return jsonify({
+            'error': 'Bad Request',
+            'message': 'The response is not yes or no.'
+        }), 400
+    response = response.lower()
+    next = db.update_quiz_response(quizid, qid, response == "yes")
+    if next:
+        return redirect(f"/quizlet/{quizid}/{next['id']}")
+    db.finish_quiz(quizid)
+    return redirect(f"/quiz-results/{quizid}")
+
+@app.route("/quiz-results/<quizid>")
+def quiz_results(quizid):
+    return render_template('quiz-results.html', **db.get_quiz_stats(quizid))
 @app.route("/flash/<tid>")
-def flash_card_random(tid):
+def flash_card_infinite(tid):
     if "email" not in session:
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(tid)

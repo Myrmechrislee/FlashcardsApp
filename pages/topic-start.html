@@ -67,6 +67,21 @@
             cursor: pointer;
             text-decoration: none;
             transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .begin-btn.infinite {
+            padding: 15px 30px;
+            font-size: 20px;
+            color: #ff4d4d;
+            border-image: linear-gradient(135deg, #ff4d4d, #cc0000) 1;
+            width: 80%;
+            text-align: center;
+        }
+
+        .begin-btn.infinite:hover {
+            background: linear-gradient(135deg, #ff4d4d, #cc0000);
+            color: white;
         }
 
         .begin-btn:hover {
@@ -84,6 +99,24 @@
 
         .edit-link:hover, .export-btn:hover {
             text-decoration: underline;
+        }
+
+        .quiz-options {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+            width: 80%;
+        }
+
+        .quiz-options label {
+            display: block;
+            margin: 5px 0;
+        }
+
+        .separator {
+            width: 80%;
+            border-top: 1px solid #ddd;
+            margin: 20px 0;
         }
 
         .right-panel {
@@ -116,7 +149,17 @@
         <!-- Left Panel -->
         <div class="left-panel">
             <h1>{{t["title"]}}</h1>
-            <a href="/flash/{{t["_id"]}}" class="begin-btn">Begin</a>
+            <a href="/flash/{{t["_id"]}}" class="begin-btn infinite">Infinite Mode</a>
+            <a href="/quiz/{{t["_id"]}}" class="begin-btn" id="begin-quiz">Quick Quiz</a>
+            <div class="quiz-options">
+                <label>
+                    <input type="checkbox" id="randomize"> Randomize Questions
+                </label>
+                <label>
+                    <input type="checkbox" id="skip-confident"> Skip Confident Questions
+                </label>
+            </div>
+            <div class="separator"></div>
             <a href="/edit-topic/{{t["_id"]}}" class="edit-link">Edit</a>
             <a href="/export-csv/{{t["_id"]}}" class="export-btn">Export as CSV</a>
         </div>
@@ -131,5 +174,31 @@
             {% endfor %}
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const randomizeCheckbox = document.getElementById('randomize');
+            const skipConfidentCheckbox = document.getElementById('skip-confident');
+            const beginQuizBtn = document.getElementById('begin-quiz');
+
+            beginQuizBtn.addEventListener('click', function(event) {
+                let url = '/quiz/{{t["_id"]}}';
+                const params = [];
+
+                if (randomizeCheckbox.checked) {
+                    params.push('randomize=true');
+                }
+                if (skipConfidentCheckbox.checked) {
+                    params.push('skip-confident=true');
+                }
+
+                if (params.length > 0) {
+                    url += '?' + params.join('&');
+                }
+
+                beginQuizBtn.href = url;
+            });
+        });
+    </script>
 </body>
 </html>
