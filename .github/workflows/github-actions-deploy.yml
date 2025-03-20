@@ -25,4 +25,4 @@ jobs:
             docker build -t flashcards-app:latest . && \
             docker stop flashcards-web-app && \
             docker rm flashcards-web-app && \
-            docker run -p 8080:8080 -d --network mongo-network --name flashcards-web-app flashcards-app:latest
+            docker run -p 8080:8080 -d --network mongo-network --name flashcards-web-app -e SENDER_EMAIL='${{ secrets.EMAIL }}' -e EMAIL_PASSWORD='${{ secrets.EMAIL_APP_PASSWORD }}' flashcards-app:latest
