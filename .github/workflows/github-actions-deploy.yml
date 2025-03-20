@@ -25,4 +25,4 @@ jobs:
             docker build -t flashcards-app:latest . && \
             docker stop flashcards-web-app && \
             docker rm flashcards-web-app && \
-            docker run -p 8080:8080 -d --network mongo-network --name flashcards-web-app -e APP_URL='https://flash-cards.leechengzhu.com/' -e SENDER_EMAIL='${{ secrets.EMAIL }}' -e EMAIL_PASSWORD='${{ secrets.EMAIL_APP_PASSWORD }}' -p 25:25 -p 587:587 -p 465:465 -p 2525:2525 flashcards-app:latest
+            docker run -p 8080:8080 -d --network mongo-network --name flashcards-web-app -e APP_URL='https://flash-cards.leechengzhu.com/' -e SENDER_EMAIL='christophe@leechengzhu.com' -e EMAIL_PASSWORD='${{ secrets.SENDGRID_API_KEY }}' -p 25:25 -p 587:587 -p 465:465 -p 2525:2525 flashcards-app:latest

@@ -1,25 +1,15 @@
 from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session, send_file
-from flask_mail import Mail, Message
-import random, db, io, csv, pandas as pd, re, os, secrets
-
-print(f"Setting up...")
+import random, db, io, csv, pandas as pd, re, os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = "ce4f9f579b2a22b536d9fa989b0847ce"
 app.config['SESSION_COOKIE_NAME'] = "flask_app_session"
 
-app.config['MAIL_SERVER'] = 'smtp.mail.me.com'
-app.config['MAIL_PORT'] = 587  # Replace with your SMTP port
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get("SENDER_EMAIL")
-app.config['MAIL_PASSWORD'] = os.environ.get("EMAIL_PASSWORD")
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("SENDER_EMAIL")
-
-print("email: ", os.environ.get("SENDER_EMAIL"))
-print("password: ", os.environ.get("EMAIL_PASSWORD"))
-
-mail = Mail(app)
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+SEND_EMAIL = os.environ.get("SENDER_EMAIL")
 app_url = os.environ.get("APP_URL", "http://localhost:8080/").rstrip('/')
 
 @app.route('/topics', methods=["GET", "POST"])
@@ -252,12 +242,14 @@ def create_account():
             db.add_user(request.form["name"], request.form["email"], request.form["password"])
             verification_code = db.set_verification_code(request.form["email"])
             html_content = render_template('email_templates/confimation.html', verification_link=f'{app_url}/verify-email?token={verification_code}')
-            msg = Message(
+            msg = Mail(
+                from_email=SEND_EMAIL,
+                to_emails=request.form["email"],
                 subject="Email Verification",
-                recipients=[request.form["email"]],
-                html=html_content
+                html_content=html_content
             )
-            mail.send(msg)
+            sg = SendGridAPIClient(SENDGRID_API_KEY)
+            sg.send(msg)
             flash("Account successfully added! A verification message has been sent. Please check your email. ")
     return render_template("create-account.html")
 
@@ -324,12 +316,14 @@ def send_verification_email():
     
     verification_code = db.set_verification_code(session['email'])
     html_content = render_template('email_templates/confimation.html', verification_link=f'{app_url}/verify-email?token={verification_code}')
-    msg = Message(
+    msg = Mail(
+        from_email=SEND_EMAIL,
+        to_emails=session['email'],
         subject="Email Verification",
-        recipients=[session['email']],
-        html=html_content
+        html_content=html_content
     )
-    mail.send(msg)
+    sg = SendGridAPIClient(SENDGRID_API_KEY)
+    sg.send(msg)
     return render_template('message.html', title='Email Sent', body="""<p>The verification has been sent. Please check your email. </p>
     """)
 @app.route("/verify-email")
