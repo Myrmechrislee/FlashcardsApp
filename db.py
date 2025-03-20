@@ -1,4 +1,4 @@
-import os, hashlib
+import os, hashlib, smtplib, secrets
 from pymongo import MongoClient
 import gridfs
 from bson import ObjectId
@@ -104,7 +104,9 @@ def add_user(name, email, password):
         "email": email,
         "password_hash": password_hash,
         "topics": [],
-        "profile_pic": ""
+        "profile_pic": "",
+        "quizes": [],
+        'email_confirmed': False
     })
 
 def update_profile_picture(email, profile_pic):
@@ -172,3 +174,18 @@ def format_timedelta(td):
         return f"{minutes} minutes and {seconds} seconds"
     else:
         return f"{seconds} seconds"
+
+def email_is_verified(email):
+    return db.users.find_one({'email': email})['email_confirmed']
+
+def set_verification_code(email):
+    code = secrets.token_hex(16)
+    db.users.update_one({'email': email}, {'$set': {'verification_code': code}})
+    return code
+
+def validate_code(code):
+    user = db.users.find_one({'verification_code': code})
+    if not user:
+        return False
+    db.users.update_one({'email': user['email']}, {'$set': {'email_confirmed': True}})
+    return True

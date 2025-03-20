@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session, send_file
-import random, db, io, csv, pandas as pd, re
+from flask_mail import Mail, Message
+import random, db, io, csv, pandas as pd, re, os, secrets
 
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
@@ -7,11 +8,24 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = "ce4f9f579b2a22b536d9fa989b0847ce"
 app.config['SESSION_COOKIE_NAME'] = "flask_app_session"
 
+app.config['MAIL_SERVER'] = 'smtp.mail.me.com'
+app.config['MAIL_PORT'] = 587  # Replace with your SMTP port
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get("SENDER_EMAIL")
+app.config['MAIL_PASSWORD'] = os.environ.get("EMAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("SENDER_EMAIL")
+
+mail = Mail(app)
+app_url = os.environ.get("APP_URL", "http://localhost:8080/").rstrip('/')
+
 @app.route('/topics', methods=["GET", "POST"])
 def topics():
     if "email" not in session:
         return redirect(f'/?next={request.url}')
+    if not db.email_is_verified(session['email']):
+        return redirect('/validate-email-message')
     return render_template("topics.html", user=db.get_user(session["email"]), topics=db.get_topics(session["email"]))
+
 @app.route("/flash/<tid>/<qid>")
 def flashcard(tid, qid):
     if "email" not in session:
@@ -227,9 +241,20 @@ def signout():
 @app.route("/create-account", methods=["GET", "POST"])
 def create_account():
     if request.method == "POST":
-        db.add_user(request.form["name"], request.form["email"], request.form["password"])
-        flash("Account successfully added!")
-        return render_template("create-account.html")
+        if db.email_already_exists(request.form["email"]):
+            print("email exists")
+            flash("Email already exists", category="error")
+        else:
+            db.add_user(request.form["name"], request.form["email"], request.form["password"])
+            verification_code = db.set_verification_code(request.form["email"])
+            html_content = render_template('email_templates/confimation.html', verification_link=f'{app_url}/verify-email?token={verification_code}')
+            msg = Message(
+                subject="Email Verification",
+                recipients=[request.form["email"]],
+                html=html_content
+            )
+            mail.send(msg)
+            flash("Account successfully added! A verification message has been sent. Please check your email. ")
     return render_template("create-account.html")
 
 @app.route("/edit-profile", methods=["GET", "POST"])
@@ -255,7 +280,6 @@ def edit_profile():
                 name = request.form.get("name")
                 db.update_name(session["email"], name)
         except Exception as e:
-            raise e
             flash("There has been a problem updating your account", "error")
         else:
             flash("Account successfully updated!", "success")
@@ -281,6 +305,44 @@ def change_password():
             db.update_password(session["email"], new_password)
             flash('Password changed successfully!', 'success')
     return render_template("change-password.html")
+@app.route('/validate-email-message')
+def validate_email_message():
+
+    if "email" not in session:
+        return redirect(f'/?next={request.url}')
+    return render_template('message.html', title = 'Please Validate Your Email', body="""<p>We've sent a verification email to your inbox. Please check your email and click on the link to validate your account.</p>
+        <p>If you didn't receive the email, you can <a href="/send-verification-email" class="link">resend the verification email</a>.</p>""")
+
+@app.route('/send-verification-email')
+def send_verification_email():
+    if "email" not in session:
+        return redirect(f'/?next={request.url}')
+    
+    verification_code = db.set_verification_code(session['email'])
+    html_content = render_template('email_templates/confimation.html', verification_link=f'{app_url}/verify-email?token={verification_code}')
+    msg = Message(
+        subject="Email Verification",
+        recipients=[session['email']],
+        html=html_content
+    )
+    mail.send(msg)
+    return render_template('message.html', title='Email Sent', body="""<p>The verification has been sent. Please check your email. </p>
+    """)
+@app.route("/verify-email")
+def verify_email():
+    token_sent = request.args.get('token')
+    if db.validate_code(token_sent):
+        data = {
+            "title": "Thank You!",
+            "body": """Your email has been confirmed. You can now get started with the link below. Click <a href='/' class='link'>here</a> to get started. """,
+        }
+    else:
+        data = {
+            "header": "Link Expired",
+            "body": """This verification link is out of date. Please use the most recent link sent to your email. Or you can click <a href='/send-verification-email' class='link'>here</a> to send another one. """,
+        }
+    
+    return render_template('message.html', **data)
 if __name__ == '__main__':
     app.run(debug=True)
 

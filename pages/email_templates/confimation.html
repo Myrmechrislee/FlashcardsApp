@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Confirmation</title>
+</head>
+<body style="font-family: 'Monospace', monospace; background: linear-gradient(135deg, #667eea, #764ba2); margin: 0; padding: 0; color: #fff;">
+    <div class="container" style="background-color: rgba(255, 255, 255, 0.1); max-width: 600px; margin: 20px auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); text-align: center; backdrop-filter: blur(10px);">
+        <h1 style="color: #fff; margin-bottom: 20px; font-size: 24px;">Email Confirmation</h1>
+        <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 20px; font-size: 16px;">Thank you for signing up! To complete your registration, please click the link below:</p>
+        
+        <!-- Dynamic Verification Link -->
+        <a href="{{ verification_link }}" class="verification-link" style="background-color: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; margin: 20px 0; display: inline-block; color: #fff; text-decoration: none; transition: all 0.3s ease;">
+            Verify Your Email
+        </a>
+
+        <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 20px; font-size: 16px;">If you did not request this email, please ignore it.</p>
+        <div class="footer" style="margin-top: 30px; font-size: 14px; color: rgba(255, 255, 255, 0.6);">
+            <p>Best regards,<br>Christophe Lee. </p>
+        </div>
+    </div>
+</body>
+</html>
