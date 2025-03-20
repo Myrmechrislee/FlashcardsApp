@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify, request, redirect, Response, 
 from flask_mail import Mail, Message
 import random, db, io, csv, pandas as pd, re, os, secrets
 
+print(f"Setting up...")
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -14,6 +15,9 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get("SENDER_EMAIL")
 app.config['MAIL_PASSWORD'] = os.environ.get("EMAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("SENDER_EMAIL")
+
+print("email: ", os.environ.get("SENDER_EMAIL"))
+print("password: ", os.environ.get("EMAIL_PASSWORD"))
 
 mail = Mail(app)
 app_url = os.environ.get("APP_URL", "http://localhost:8080/").rstrip('/')
