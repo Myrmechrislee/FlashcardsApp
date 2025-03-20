@@ -341,6 +341,44 @@ def verify_email():
         }
     
     return render_template('message.html', **data)
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "GET":
+        return render_template('forgot-password.html')
+    email = request.form['email']
+    if not db.email_already_exists(email):
+        flash("Email isn't registered. ")
+        return render_template('forgot-password.html')
+    
+    url = db.set_reset_password_link(email)
+    html_content = render_template('email_templates/reset-password.html', reset_password_link=app_url + url)
+    msg = Mail(
+        from_email=SEND_EMAIL,
+        to_emails=email,
+        subject="Reset Password",
+        html_content=html_content
+    )
+    sg = SendGridAPIClient(SENDGRID_API_KEY)
+    sg.send(msg)
+    return render_template('message.html', title="Password Reset", body="The instructions to reset your password has been sent. Please check your email. ")
+
+@app.route('/reset-password', methods=["GET", "POST"])
+def reset_password():
+    tokens = request.args['tokens']
+    if request.method == "GET":
+        if not db.reset_password_code_exists(tokens):
+            return render_template('message.html', title="Password Reset", body="Invalid tokens, try checking if this is your most recent email. You can also send another from <a href='/forgot-password' class='link'>here</a>. ")
+        if not db.reset_password_upto_date(tokens):
+            return render_template('message.html', title="Password Reset", body="Your link is no longer valid, it was only valid for up to 5 minutes. You can also send another from <a href='/forgot-password' class='link'>here</a>. ")
+        return render_template('reset-password.html')
+    else:
+        if request.form['new-password'] != request.form['confirm-password']:
+            flash("Passwords do not match. ")
+        else:
+            db.reset_password(tokens, request.form['new-password'])
+            flash('Password updated. ')
+            return render_template('reset-password.html')
 if __name__ == '__main__':
     app.run(debug=True)
 

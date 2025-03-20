@@ -2,7 +2,7 @@ import os, hashlib, smtplib, secrets
 from pymongo import MongoClient
 import gridfs
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 
 client = MongoClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017/flashcards"))
 db = client.get_database()
@@ -189,3 +189,23 @@ def validate_code(code):
         return False
     db.users.update_one({'email': user['email']}, {'$set': {'email_confirmed': True}})
     return True
+
+def set_reset_password_link(email):
+    code = secrets.token_hex(16)
+    db.users.update_one({'email': email}, {'$set': {
+        'reset_password_code': code,
+        'reset_password_code_time': datetime.now()
+    }})
+    return '/reset-password?tokens=' + code
+
+def reset_password_code_exists(code):
+    user = db.users.find_one({'reset_password_code': code})
+    return user != None
+
+def reset_password_upto_date(code):
+    user = db.users.find_one({'reset_password_code': code})
+    return (datetime.now() - user['reset_password_code_time']) < timedelta(minutes=5)
+
+def reset_password(code, new_password):
+    password_hash = hashlib.md5((salt + new_password).encode()).hexdigest()
+    db.users.update_one({'reset_password_code': code}, {'$set': {'password_hash':password_hash}})
