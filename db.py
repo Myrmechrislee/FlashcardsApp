@@ -66,7 +66,6 @@ def edit_topic(id, form_data):
             "answer": answer,
             "confidence": int(confidence)
         })
-    print(questions)
     data["questions"] = questions
     db.topics.update_one({"_id": data["_id"]}, {"$set": data})
 

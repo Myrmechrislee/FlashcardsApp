@@ -9,7 +9,7 @@
       background-color: #f8f8f8;
       font-family: 'Courier New', Courier, monospace;
       margin: 0;
-      padding: 20px;
+      padding: 20px 20px 80px; /* Added bottom padding for fixed navbar */
     }
     .form-container {
       background-color: white;
@@ -20,6 +20,7 @@
       max-width: 1200px;
       margin: 0 auto;
       box-sizing: border-box;
+      margin-bottom: 20px;
     }
     h2, h3 {
       margin-bottom: 20px;
@@ -69,69 +70,94 @@
       background: red;
       color: white;
     }
-    .button-group {
+    /* Bottom Navbar Styles */
+    .bottom-navbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 15px 20px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
       display: flex;
       justify-content: center;
       gap: 15px;
-      margin-top: 30px;
+      z-index: 1000;
     }
-    .button-group button {
+    .nav-button {
       padding: 12px 24px;
       border: 2px solid;
       border-radius: 8px;
       background: transparent;
       cursor: pointer;
-      transition: background 0.3s, color 0.3s;
+      transition: all 0.3s;
       font-size: 16px;
       font-family: 'Courier New', Courier, monospace;
+      text-decoration: none;
+    }
+    .save-btn {
       border-image-slice: 1;
       border-image-source: linear-gradient(135deg, #667eea, #764ba2);
       color: #667eea;
     }
-    .button-group button:disabled {
-      opacity: 0.5;
-    }
-    .button-group button:hover:enabled {
+    .save-btn:hover:enabled {
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
     }
-    .back-button {
-      color: grey;
-      text-decoration: none;
-      font-size: 16px;
-      font-family: 'Courier New', Courier, monospace;
+    .save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
     .delete-topic-btn {
-      color: red !important;
-      border: 2px solid red !important;
+      border: 2px solid red;
+      color: red;
     }
     .delete-topic-btn:hover {
-      background: red !important;
-      color: white !important;
-    }
-    .add-question-btn {
-      width: calc(50% - 10px);
-      height: 0;
-      padding-bottom: calc(50% - 10px);
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: red;
       color: white;
-      font-size: 40px;
+    }
+    .back-btn {
+      border: 2px solid grey;
+      color: grey;
+    }
+    .back-btn:hover {
+      background: grey;
+      color: white;
+    }
+    .add-question-card {
+      width: calc(50% - 10px);
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border: 2px dashed #ccc;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .add-question-card:hover {
+      border-color: #667eea;
+      background-color: #f5f7ff;
+    }
+    .add-question-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: none;
+      cursor: pointer;
       transition: transform 0.3s;
-      position: relative;
-      overflow: hidden;
     }
     .add-question-btn:hover {
-      transform: scale(1.05);
-    }
-    .add-question-btn::before {
-      content: "+";
-      position: absolute;
+      transform: scale(1.1);
     }
     .confidence-label {
       display: block;
@@ -155,7 +181,7 @@
 <body>
   <div class="form-container">
     <h2>Edit Topic</h2>
-    <form action="/edit-topic/{{ topic._id }}" method="POST" oninput="validateForm()">
+    <form id="topic-form" action="/edit-topic/{{ topic._id }}" method="POST" oninput="validateForm()">
       <h3>Topic Title</h3>
       <input type="text" name="title" value="{{ topic.title }}" required>
 
@@ -176,18 +202,20 @@
           <button type="button" class="delete-btn" onclick="this.parentElement.remove(); validateForm();">Delete</button>
         </div>
         {% endfor %}
-      </div>
-      
-      <div id="add-question-container" style="width: calc(50% - 10px);">
-        <button type="button" class="add-question-btn" onclick="addQuestion()"></button>
-      </div>
-      
-      <div class="button-group">
-        <button type="submit" id="save-btn" disabled>Save Changes</button>
-        <button type="button" class="delete-topic-btn" onclick="confirmDelete()">Delete Topic</button>
-        <a href="/topic-start/{{topic._id}}" class="back-button">Go Back</a>
+        
+        <!-- Add Question Card Button -->
+        <div class="add-question-card" onclick="addQuestion()">
+          <button type="button" class="add-question-btn">+</button>
+        </div>
       </div>
     </form>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <div class="bottom-navbar">
+    <button type="submit" form="topic-form" class="nav-button save-btn" id="save-btn" disabled>Save Changes</button>
+    <button type="button" class="nav-button delete-topic-btn" onclick="confirmDelete()">Delete Topic</button>
+    <a href="/topic-start/{{topic._id}}" class="nav-button back-btn">Go Back</a>
   </div>
 
   <script>
@@ -262,11 +290,9 @@
       questionContainer.appendChild(select);
       questionContainer.appendChild(deleteBtn);
       
-      container.appendChild(questionContainer);
-      
-      // Move the add button to the end
-      const addBtnContainer = document.getElementById('add-question-container');
-      container.appendChild(addBtnContainer);
+      // Insert before the add button card
+      const addCard = document.querySelector('.add-question-card');
+      container.insertBefore(questionContainer, addCard);
       
       updateSelectColor(select);
       validateForm();

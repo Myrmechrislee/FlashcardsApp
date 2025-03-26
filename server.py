@@ -156,8 +156,7 @@ def edit_topic(id):
             return "All fields must be filled", 400
         
         db.edit_topic(id, request.form)
-        
-        return redirect(f"/topic-start/{id}")
+        topic=db.get_topic(id)
     
     return render_template('edit-topic.html', topic=topic)
 
@@ -236,7 +235,6 @@ def signout():
 def create_account():
     if request.method == "POST":
         if db.email_already_exists(request.form["email"]):
-            print("email exists")
             flash("Email already exists", category="error")
         else:
             db.add_user(request.form["name"], request.form["email"], request.form["password"])
