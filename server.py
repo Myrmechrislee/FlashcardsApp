@@ -9,7 +9,7 @@ app.secret_key = "ce4f9f579b2a22b536d9fa989b0847ce"
 app.config['SESSION_COOKIE_NAME'] = "flask_app_session"
 
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-SEND_EMAIL = os.environ.get("SENDER_EMAIL")
+SEND_EMAIL = os.environ.get("SENDER_EMAIL", "flashcards@leechengzhu.com")
 app_url = os.environ.get("APP_URL", "http://localhost:8080/").rstrip('/')
 
 @app.route('/topics', methods=["GET", "POST"])
