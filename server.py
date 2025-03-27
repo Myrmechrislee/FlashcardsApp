@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session, send_file
+from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session, send_file, abort
 import random, db, io, csv, pandas as pd, re, os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -26,13 +26,13 @@ def flashcard(tid, qid):
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(tid)
     if topic == None:
-        return "topic not found", 404
+        abort(404)
     if not db.has_access_to_topic(session["email"], tid):
-        return "No access", 403
+        abort(403)
     questions = topic["questions"]
     question = [q for q in questions if str(q["id"]) == str(qid)]
     if len(question) == 0:
-        return "question not found", 404
+        abort(404)
     return render_template("flash.html", t=db.get_topic(tid), question=question[0])
 
 @app.route("/quiz/<tid>")
@@ -41,9 +41,9 @@ def quiz(tid):
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(tid)
     if topic == None:
-        return "topic not found", 404
+        abort(404)
     if not db.has_access_to_topic(session["email"], tid):
-        return "No access", 403
+        abort(403)
     
     questions = topic['questions']
     if request.args.get('randomize', default=False, type=bool):
@@ -59,14 +59,14 @@ def quizlet(quizid, qid):
     if "email" not in session:
         return redirect(f'/?next={request.url}')
     if not db.has_access_to_quiz(session["email"], quizid):
-        return "No access", 403
+        abort(403)
     quiz = db.get_quiz(quizid)
     if not quiz:
-        return "Page not found", 404
+        abort(404)
     questions = quiz['questions']
     question = [q for q in questions if str(q['id']) == qid]
     if len(question) == 0:
-        return "Question not found", 404
+        abort(404)
     return render_template("/quizlet.html", t=db.get_topic(quiz["topic_id"]), quizid=quizid, qid=qid, question=question[0], streak=db.get_streak(quizid))
 
 @app.route("/answer-quizlet/<quizid>/<qid>")
@@ -74,7 +74,7 @@ def answer_quizlet(quizid, qid):
     if "email" not in session:
         return redirect(f'/?next={request.url}')
     if not db.has_access_to_quiz(session["email"], quizid):
-        return "No access", 403
+        abort(403)
     response = request.args.get("response")
     if response not in ["yes", "no"]:
         return jsonify({
@@ -97,9 +97,9 @@ def flash_card_infinite(tid):
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(tid)
     if topic == None:
-        return "topic not found", 404
+        abort(404)
     if not db.has_access_to_topic(session["email"], tid):
-        return "No access", 403
+        abort(403)
     topic = db.get_topic(tid)
     question = random.choice(topic["questions"])
     return redirect(f"/flash/{tid}/{question['id']}")
@@ -134,9 +134,9 @@ def topic_start(id):
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
-        return "topic not found", 404
+        abort(404)
     if not db.has_access_to_topic(session["email"], id):
-        return "No access", 403
+        abort(403)
     return render_template("topic-start.html", t=topic)
 
 @app.route('/edit-topic/<id>', methods=['GET', 'POST'])
@@ -145,9 +145,9 @@ def edit_topic(id):
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
-        return "Topic not found", 404
+        abort(404)
     if not db.has_access_to_topic(session["email"], id):
-        return "No access", 403
+        abort(403)
     
     if request.method == 'POST':
         title = request.form['title']
@@ -168,9 +168,9 @@ def delete_topic(id):
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
-        return "Topic not found", 404
+        abort(404)
     if not db.has_access_to_topic(session["email"], id):
-        return "No access", 403
+        abort(403)
     db.delete_topic(id)
     return redirect("/topics")
 
@@ -180,9 +180,9 @@ def export_csv(id):
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
-        return "Topic not found", 404
+        abort(404)
     if not db.has_access_to_topic(session["email"], id):
-        return "No access", 403
+        abort(403)
     questions = topic["questions"]
     out = io.StringIO()
     w = csv.writer(out)
@@ -287,7 +287,7 @@ def uploads(file_id):
         file = db.get_upload(file_id)
         return send_file(io.BytesIO(file.read()), mimetype=file.content_type)
     except Exception as e:
-        return "File not found", 404
+        abort(404)
 
 @app.route("/change-password", methods=["GET", "POST"])
 def change_password():
@@ -303,7 +303,6 @@ def change_password():
     return render_template("change-password.html")
 @app.route('/validate-email-message')
 def validate_email_message():
-
     if "email" not in session:
         return redirect(f'/?next={request.url}')
     return render_template('message.html', title = 'Please Validate Your Email', body="""<p>We've sent a verification email to your inbox. Please check your email and click on the link to validate your account.</p>
@@ -379,6 +378,14 @@ def reset_password():
             db.reset_password(tokens, request.form['new-password'])
             flash('Password updated. ')
             return render_template('reset-password.html')
+
+@app.errorhandler(404)
+def error_404_handler(err):
+    return render_template("HTTP Status Pages/404.html")
+
+@app.errorhandler(403)
+def error_403_handler(err):
+    return render_template("HTTP Status Pages/403.html")
 if __name__ == '__main__':
     app.run(debug=True)
 
