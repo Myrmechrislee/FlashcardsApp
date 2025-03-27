@@ -65,7 +65,7 @@ def quizlet(quizid, qid):
     question = [q for q in questions if str(q['id']) == qid]
     if len(question) == 0:
         return "Question not found", 404
-    return render_template("/quizlet.html", t=db.get_topic(quiz["topic_id"]), quizid=quizid, qid=qid, question=question[0])
+    return render_template("/quizlet.html", t=db.get_topic(quiz["topic_id"]), quizid=quizid, qid=qid, question=question[0], streak=db.get_streak(quizid))
 
 @app.route("/answer-quizlet/<quizid>/<qid>")
 def answer_quizlet(quizid, qid):

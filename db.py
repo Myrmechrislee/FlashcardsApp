@@ -208,3 +208,15 @@ def reset_password_upto_date(code):
 def reset_password(code, new_password):
     password_hash = hashlib.md5((salt + new_password).encode()).hexdigest()
     db.users.update_one({'reset_password_code': code}, {'$set': {'password_hash':password_hash}})
+
+def get_streak(quizid):
+    quiz = get_quiz(quizid)
+    questions = quiz['questions']
+    questions_answered = [q for q in questions if 'correct' in q]
+    streak = 0
+    for question in reversed(questions_answered):
+        if question['correct']:
+            streak += 1
+        else:
+            break  # Stop when we hit an incorrect answer
+    return streak

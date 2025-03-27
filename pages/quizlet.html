@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flash Card Page</title>
+    <!-- Add Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,15 +78,15 @@
             display: none;
         }
         .response-prompt a {
-            margin: 10px; /* Increased margin */
-            padding: 20px 40px; /* Increased padding */
-            font-size: 24px; /* Increased font size */
+            margin: 10px;
+            padding: 20px 40px;
+            font-size: 24px;
             cursor: pointer;
             border: 2px solid;
-            border-radius: 10px; /* Slightly larger border radius */
+            border-radius: 10px;
             text-decoration: none;
             transition: background-color 0.3s, color 0.3s;
-            display: inline-block; /* Ensure buttons are inline-block */
+            display: inline-block;
         }
         .response-prompt a.yes {
             border-color: green;
@@ -118,10 +120,111 @@
             background: linear-gradient(135deg, #5a67d8, #6b46c1);
             transform: scale(1.05);
         }
+        /* Streak fire icon styles */
+        .streak-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            color: white;
+            transform-origin: center;
+        }
+        .streak-grey {
+            width: 50px;
+            height: 50px;
+            font-size: 30px;
+            background-color: #808080;
+        }
+        .streak-yellow {
+            width: 60px;
+            height: 60px;
+            font-size: 36px;
+            background-color: #FFD700;
+        }
+        .streak-orange {
+            width: 75px;
+            height: 75px;
+            font-size: 50px;
+            background-color: #FFA500;
+        }
+        .streak-red {
+            width: 80px;
+            height: 80px;
+            font-size: 42px;
+            background-color: #FF4500;
+        }
+        .streak-pulse {
+            animation: pulse 0.5s ease-in-out 1;
+        }
+        .streak-count {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            background-color: white;
+            color: black;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .streak-grey .streak-count {
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+        }
+        .streak-yellow .streak-count {
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+        }
+        .streak-orange .streak-count {
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+        }
+        .streak-red .streak-count {
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+        }
+        
+        /* Animation for the streak icon */
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.7;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
     <a href="/topic-start/{{t['_id']}}" class="back-button">Go Back</a>
+    {% if streak > 0 %}
+    <div class="streak-icon 
+        {% if streak < 3 %}streak-grey
+        {% elif streak >= 3 and streak < 5 %}streak-yellow {% if streak == 3 %}streak-pulse{% endif %}
+        {% elif streak >= 5 and streak < 10 %}streak-orange {% if streak == 5 %}streak-pulse{% endif %}
+        {% else %}streak-red streak-pulse
+        {% endif %}">
+        <i class="fas fa-fire"></i>
+        <span class="streak-count">{{streak}}</span>
+    </div>
+    {% endif %}
     <h1>{{t["title"]}}</h1>
     <div class="card" id="flashcard" onclick="flipCard()">
         <div class="front" id="front-text">{{question["question"]}}</div>
