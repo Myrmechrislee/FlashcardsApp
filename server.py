@@ -134,7 +134,7 @@ def topic_start(id):
         return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
-        return 404
+        return "topic not found", 404
     if not db.has_access_to_topic(session["email"], id):
         return "No access", 403
     return render_template("topic-start.html", t=topic)
