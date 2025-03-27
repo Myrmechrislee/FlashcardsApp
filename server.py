@@ -61,6 +61,8 @@ def quizlet(quizid, qid):
     if not db.has_access_to_quiz(session["email"], quizid):
         return "No access", 403
     quiz = db.get_quiz(quizid)
+    if not quiz:
+        return "Page not found", 404
     questions = quiz['questions']
     question = [q for q in questions if str(q['id']) == qid]
     if len(question) == 0:

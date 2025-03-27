@@ -1,4 +1,4 @@
-import os, hashlib, smtplib, secrets
+import os, hashlib, secrets
 from pymongo import MongoClient
 import gridfs
 from bson import ObjectId
@@ -131,7 +131,8 @@ def generate_quiz(email, tid, questions):
     id = db.quizes.insert_one({
         'topic_id': ObjectId(tid),
         'questions': questions,
-        'time-start': datetime.now()
+        'time-start': datetime.now(),
+        'expiresAt': datetime.utcnow() + timedelta(days=1)
     }).inserted_id
     db.users.update_one({'email': email}, {'$push': {'quizes': id}})
     return id
