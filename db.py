@@ -9,6 +9,8 @@ db = client.get_database()
 salt = "558f455d7315ce54148b6f0628ae6f3f"
 fs = gridfs.GridFS(db)
 
+def hash_password(password):
+    return hashlib.md5((salt + password).encode()).hexdigest()
 def get_user(email):
     return db.users.find_one({"email": email})
 
@@ -89,7 +91,7 @@ def import_topic(email, title, df):
     return len(questions)
 
 def test_login(email, password):
-    password_hash = hashlib.md5((salt + password).encode()).hexdigest()
+    password_hash = hash_password(password)
     user = db.users.find_one({"email": email, "password_hash": password_hash})
     if user == None: 
         return False, "" 
@@ -97,7 +99,7 @@ def test_login(email, password):
         return True, user
 
 def add_user(name, email, password):
-    password_hash = hashlib.md5((salt + password).encode()).hexdigest()
+    password_hash = hash_password(password)
     db.users.insert_one({
         "name": name,
         "email": email,
@@ -105,7 +107,8 @@ def add_user(name, email, password):
         "topics": [],
         "profile_pic": "",
         "quizes": [],
-        'email_confirmed': False
+        'email_confirmed': False,
+        'is_admin': False
     })
 
 def update_profile_picture(email, profile_pic):
@@ -122,7 +125,7 @@ def update_name(email, name):
     return db.users.update_one({"email": email}, {"$set": {"name": name}})
 
 def update_password(email, password):
-    password_hash = hashlib.md5((salt + password).encode()).hexdigest()
+    password_hash = hash_password(password)
     return db.users.update_one({"email": email}, {"$set": {"password_hash": password_hash}})
 
 def has_access_to_quiz(email, quizid):
@@ -207,7 +210,7 @@ def reset_password_upto_date(code):
     return (datetime.now() - user['reset_password_code_time']) < timedelta(minutes=5)
 
 def reset_password(code, new_password):
-    password_hash = hashlib.md5((salt + new_password).encode()).hexdigest()
+    password_hash = hash_password(new_password)
     db.users.update_one({'reset_password_code': code}, {'$set': {'password_hash':password_hash}})
 
 def get_streak(quizid):
@@ -221,3 +224,62 @@ def get_streak(quizid):
         else:
             break  # Stop when we hit an incorrect answer
     return streak
+
+def get_user_count():
+    return db.users.count_documents({})
+
+def get_topics_count():
+    return db.topics.count_documents({})
+
+def get_users():
+    return db.users.find()
+
+def search_users(search_query=""):
+    if search_query != "":
+        query = {
+                '$or': [
+                    {'name': {'$regex': search_query, '$options': 'i'}},
+                    {'email': {'$regex': search_query, '$options': 'i'}}
+                ]
+            }
+        
+        return db.users.find(query).to_list()
+    else:
+        return db.users.find().to_list()
+
+def get_user_by_id(user_id):
+    return db.users.find_one({'_id': ObjectId(user_id)})
+def edit_user(user_id, request):
+    name = request.form.get('name')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    is_admin = 'is_admin' in request.form
+    email_confirmed = 'email_confirmed' in request.form
+        
+    update_data = {
+        'name': name,
+        'email': email,
+        'is_admin': is_admin,
+        'email_confirmed': email_confirmed
+    }
+    
+    if password:
+        # Hash the new password (you'll need your password hashing function)
+        update_data['password_hash'] = hash_password(password)
+    
+    # Handle profile picture upload
+    if 'profile_pic' in request.files and request.files['profile_pic'].filename != '':
+        file = request.files['profile_pic']
+        update_profile_picture(email, file)
+    
+    # Handle profile picture removal
+    if 'remove_profile_pic' in request.form:
+        update_data['profile_pic'] = ''
+    
+    # Update user in MongoDB
+    db.users.update_one(
+        {'_id': ObjectId(user_id)},
+        {'$set': update_data}
+    )
+def verify_user(user_id):
+    db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'email_confirmed': True}})

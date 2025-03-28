@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flashcard Topic Selection</title>
+  <!-- Add Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       background: linear-gradient(135deg, #667eea, #764ba2);
@@ -95,6 +97,11 @@
       background: #f0f0f0;
       border-radius: 5px;
     }
+    .popup-option i {
+      width: 25px;
+      text-align: center;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -105,8 +112,8 @@
             <li><a href="/topic-start/{{t['_id']}}" class="topic-link">{{t['title']}}</a></li>
         {% endfor %}
     </ul>
-    <a href="/add-topic" class="text-button">Add Topic</a> |
-    <a href="/import-topic" class="text-button">Import Topic</a>
+    <a href="/add-topic" class="text-button"><i class="fas fa-plus"></i> Add Topic</a> |
+    <a href="/import-topic" class="text-button"><i class="fas fa-file-import"></i> Import Topic</a>
   </div>
   <div class="profile-container">
     {% if user['profile_pic'] == "" %}
@@ -115,8 +122,11 @@
         <img src="/uploads/{{user['profile_pic']}}" alt="Profile Picture" class="profile-pic" id="profile-pic" onclick="toggleMenu()">
     {% endif %}
     <div class="popup-menu" id="popupMenu">
-      <a href="/edit-profile" class="popup-option">Edit Profile</a>
-      <a href="/signout" class="popup-option">Sign Out</a>
+      {% if is_admin %}
+        <a href="/admin" class="popup-option"><i class="fas fa-shield-alt"></i> Server Management</a>
+      {% endif %}
+      <a href="/edit-profile" class="popup-option"><i class="fas fa-user-edit"></i> Edit Profile</a>
+      <a href="/signout" class="popup-option"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
     </div>
   </div>
   <script>

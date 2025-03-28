@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Controls Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      margin: 0;
+      font-family: monospace, sans-serif;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      font-size: 36px;
+      margin: 0;
+    }
+    
+    .back-button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    
+    .back-button:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .control-card {
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.2s, background-color 0.3s;
+    }
+    
+    .control-card:hover {
+      background-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-5px);
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .card-icon {
+      font-size: 24px;
+      margin-right: 15px;
+      width: 40px;
+      height: 40px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .card-title {
+      font-size: 20px;
+      margin: 0;
+    }
+    
+    .card-content {
+      margin-bottom: 15px;
+    }
+    
+    .card-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .card-button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.3s;
+      flex-grow: 1;
+    }
+    
+    .primary-button {
+      background-color: rgba(255, 255, 255, 0.3);
+      color: white;
+    }
+    
+    .primary-button:hover {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .danger-button {
+      background-color: rgba(255, 99, 71, 0.7);
+      color: white;
+    }
+    
+    .danger-button:hover {
+      background-color: rgba(255, 99, 71, 0.9);
+    }
+    
+    .server-stats {
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-header">
+    <h1><i class="fas fa-server"></i> Server Controls</h1>
+    <a href="/" class="back-button"><i class="fas fa-arrow-left"></i> Back to Topics</a>
+  </div>
+  
+  <div class="server-stats">
+    <h2>Server Statistics</h2>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value">{{user_count}}</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{topics_count}}</div>
+        <div class="stat-label">Active Topics</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="dashboard-grid">
+    <div class="control-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-users-cog"></i></div>
+        <h3 class="card-title">User Management</h3>
+      </div>
+      <div class="card-content">
+        Manage registered users, permissions, and access levels.
+      </div>
+      <div class="card-actions">
+        <button onclick="window.location.href='/admin/users'" class="card-button primary-button"><i class="fas fa-list"></i> View All</button>
+        <button class="card-button primary-button"><i class="fas fa-plus"></i> Add</button>
+      </div>
+    </div>
+    
+    <div class="control-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-folder"></i></div>
+        <h3 class="card-title">Topic Administration</h3>
+      </div>
+      <div class="card-content">
+        Review, edit, and manage all flashcard topics in the system.
+      </div>
+      <div class="card-actions">
+        <button class="card-button primary-button"><i class="fas fa-eye"></i> Review</button>
+        <button class="card-button danger-button"><i class="fas fa-trash"></i> Cleanup</button>
+      </div>
+    </div>
+    
+    <div class="control-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-database"></i></div>
+        <h3 class="card-title">Database Tools</h3>
+      </div>
+      <div class="card-content">
+        Backup, restore, and optimize the application database.
+      </div>
+      <div class="card-actions">
+        <button class="card-button primary-button"><i class="fas fa-save"></i> Backup</button>
+        <button class="card-button primary-button"><i class="fas fa-sync"></i> Restore</button>
+      </div>
+    </div>
+    
+    <div class="control-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-cogs"></i></div>
+        <h3 class="card-title">System Settings</h3>
+      </div>
+      <div class="card-content">
+        Configure server-wide settings and application preferences.
+      </div>
+      <div class="card-actions">
+        <button class="card-button primary-button"><i class="fas fa-sliders-h"></i> Configure</button>
+      </div>
+    </div>
+    
+    <div class="control-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
+        <h3 class="card-title">Security</h3>
+      </div>
+      <div class="card-content">
+        Manage security settings, audit logs, and access controls.
+      </div>
+      <div class="card-actions">
+        <button class="card-button primary-button"><i class="fas fa-lock"></i> Settings</button>
+        <button class="card-button primary-button"><i class="fas fa-history"></i> Logs</button>
+      </div>
+    </div>
+    
+    <div class="control-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+        <h3 class="card-title">Analytics</h3>
+      </div>
+      <div class="card-content">
+        View usage statistics and performance metrics.
+      </div>
+      <div class="card-actions">
+        <button class="card-button primary-button"><i class="fas fa-chart-pie"></i> Reports</button>
+        <button class="card-button primary-button"><i class="fas fa-download"></i> Export</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

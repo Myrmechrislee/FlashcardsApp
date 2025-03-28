@@ -4,6 +4,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from datetime import datetime
 import traceback
+from flask_paginate import Pagination, get_page_args
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -20,7 +21,7 @@ def topics():
         return redirect(f'/?next={request.url}')
     if not db.email_is_verified(session['email']):
         return redirect('/validate-email-message')
-    return render_template("topics.html", user=db.get_user(session["email"]), topics=db.get_topics(session["email"]))
+    return render_template("topics.html", user=db.get_user(session["email"]), topics=db.get_topics(session["email"]), is_admin=db.get_user(session['email'])['is_admin'])
 
 @app.route("/flash/<tid>/<qid>")
 def flashcard(tid, qid):
@@ -391,30 +392,79 @@ def error_403_handler(err):
 
 @app.errorhandler(500)
 def error_500_handler(e):
-    # Send email notification
-    error_type = type(e).__name__
-    error_message = str(e)
-    traceback_info = traceback.format_exc()
+    # # Send email notification
+    # error_type = type(e).__name__
+    # error_message = str(e)
+    # traceback_info = traceback.format_exc()
     
-    email_html = render_template('email_templates/error_notification.html',
-        error_type=error_type,
-        error_message=error_message,
-        traceback=traceback_info,
-        timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        debug=app.debug,
-        app_version='1.0.0',  # You would get this from your app config,
-        email=session['email']
-    )
-    msg = Mail(
-        from_email=SEND_EMAIL,
-        to_emails="christophelee2004@icloud.com",
-        subject="Website Error",
-        html_content=email_html   
-    )
-    sg = SendGridAPIClient(SENDGRID_API_KEY)
-    sg.send(msg)
+    # # email_html = render_template('email_templates/error_notification.html',
+    # #     error_type=error_type,
+    # #     error_message=error_message,
+    # #     traceback=traceback_info,
+    # #     timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    # #     debug=app.debug,
+    # #     app_version='1.0.0',  # You would get this from your app config,
+    # #     email=session['email']
+    # # )
+    # # msg = Mail(
+    # #     from_email=SEND_EMAIL,
+    # #     to_emails="christophelee2004@icloud.com",
+    # #     subject="Website Error",
+    # #     html_content=email_html   
+    # # )
+    # # sg = SendGridAPIClient(SENDGRID_API_KEY)
+    # # sg.send(msg)
 
     return render_template("HTTP Status Pages/500.html")
+
+@app.route("/admin")
+def server_dashboard():
+    if "email" not in session:
+        abort(403)
+    if not db.get_user(session['email'])["is_admin"]:
+        abort(403)
+    data = {
+        'user_count': db.get_user_count(),
+        'topics_count': db.get_topics_count()
+    }
+    return render_template("admin/server.html", **data)
+@app.route("/admin/users")
+def users_view():
+    if "email" not in session:
+        abort(403)
+    if not db.get_user(session['email'])["is_admin"]:
+        abort(403)
+    search_query = request.args.get('search', '')
+    return render_template('/admin/users.html', 
+                        users=db.search_users(search_query),
+                        search_query=search_query)
+
+@app.route('/admin/users/edit/<user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    if "email" not in session:
+        abort(403)
+    if not db.get_user(session['email'])["is_admin"]:
+        abort(403)
+    user=db.get_user_by_id(user_id)
+    if not user:
+        abort(404)
+    if request.method == 'POST':
+        # Handle form submission
+        if str(db.get_user(session["email"])['_id']) == user_id:
+            session["email"] = request.form['email']
+        db.edit_user(user_id, request)
+
+        return redirect('/admin/users')
+    
+    return render_template('/admin/edit-user.html', user=user)
+@app.route('/admin/users/verify/<user_id>')
+def verify_user(user_id):
+    if "email" not in session:
+        abort(403)
+    if not db.get_user(session['email'])["is_admin"]:
+        abort(403)
+    db.verify_user(user_id)
+    return redirect("/admin/users")
 if __name__ == '__main__':
     app.run(debug=True)
 
