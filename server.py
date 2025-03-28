@@ -391,7 +391,7 @@ def error_403_handler(err):
 
 @app.errorhandler(500)
 def error_500_handler(e):
-        # Send email notification
+    # Send email notification
     error_type = type(e).__name__
     error_message = str(e)
     traceback_info = traceback.format_exc()
