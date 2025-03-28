@@ -286,3 +286,24 @@ def verify_user(user_id):
 
 def delete_user(user_id):
     db.users.delete_one({'_id': ObjectId(user_id)})
+
+def search_topics(search_query=""):
+    if search_query != "":
+        db.topics.find({
+            "$or": [
+                {"title": {"$regex": search_query, "$options": "i"}},
+                {"questions.question": {"$regex": search_query, "$options": "i"}},
+                {"questions.answer": {"$regex": search_query, "$options": "i"}}
+            ]
+        })
+    else:
+        return db.topics.find().to_list()
+
+def get_topic_holders(topic_id): 
+    return  [ u['name'] for u in db.users.find({
+        "topics": {
+            "$elemMatch": {
+                "$eq": topic_id
+            }
+        }
+    }, {'name': 1}).to_list()]

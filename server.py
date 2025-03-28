@@ -473,6 +473,40 @@ def delete_user(user_id):
         abort(403)
     db.delete_user(user_id)
     return redirect("/admin/users")
+
+@app.route('/admin/topics')
+def manage_topics():
+    if "email" not in session:
+        abort(403)
+    if not db.get_user(session['email'])["is_admin"]:
+        abort(403)
+    # Get search query from URL parameters
+    search_query = request.args.get('search', '').strip()
+    
+    # Get topics from database
+    topics = db.search_topics(search_query)
+    for t in topics:
+        t["user_name"] = db.get_topic_holders(t['_id'])
+    return render_template(
+        'admin/topics.html',
+        topics=topics,
+        search_query=search_query
+    )
+
+
+@app.route('/admin/topics/delete/<topic_id>', methods=['POST'])
+def admin_delete_topic(topic_id):
+    if "email" not in session:
+        abort(403)
+    if not db.get_user(session['email'])["is_admin"]:
+        abort(403)
+    success = db.delete_topic(topic_id)
+    if success:
+        flash('Topic deleted successfully', 'success')
+    else:
+        flash('Failed to delete topic', 'error')
+    return redirect("/admin/topics")
+
 if __name__ == '__main__':
     app.run(debug=True)
 

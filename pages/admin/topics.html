@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topics Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      margin: 0;
+      font-family: monospace, sans-serif;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      font-size: 36px;
+      margin: 0;
+    }
+    
+    .back-button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    
+    .back-button:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .action-button {
+      padding: 8px 15px;
+      font-size: 14px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    
+    .action-button:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .danger-button {
+      background-color: rgba(255, 99, 71, 0.7);
+    }
+    
+    .danger-button:hover {
+      background-color: rgba(255, 99, 71, 0.9);
+    }
+    
+    .success-button {
+      background-color: rgba(46, 204, 113, 0.7);
+    }
+    
+    .success-button:hover {
+      background-color: rgba(46, 204, 113, 0.9);
+    }
+    
+    .topics-table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .topics-table th,
+    .topics-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .topics-table th {
+      background-color: rgba(255, 255, 255, 0.2);
+      font-weight: bold;
+    }
+    
+    .topics-table tr:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .questions-count {
+      background-color: rgba(52, 152, 219, 0.3);
+      color: #3498db;
+    }
+    
+    .search-bar {
+      margin-bottom: 20px;
+      display: flex;
+    }
+    
+    .search-input {
+      flex-grow: 1;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 6px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-family: inherit;
+    }
+    
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .search-button {
+      padding: 0 20px;
+      margin-left: 10px;
+      background-color: rgba(255, 255, 255, 0.3);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    
+    .search-button:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .question-preview {
+      max-height: 150px;
+      overflow-y: auto;
+      background-color: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 5px;
+    }
+    
+    .question-item {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+    
+    .question-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .confidence-0 { color: #e74c3c; }
+    .confidence-1 { color: #f39c12; }
+    .confidence-2 { color: #2ecc71; }
+    
+    .questions-count {
+      background-color: rgba(230, 126, 34, 0.3); /* Semi-transparent orange background */
+      color: #ffa502; /* Bright orange text */
+      border: 1px solid rgba(230, 126, 34, 0.5); /* Orange border */
+      padding: 4px 10px; /* Slightly larger padding */
+      font-size: 13px; /* Slightly larger font */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    }
+
+    .user-badge {
+      background-color: rgba(155, 89, 182, 0.5); /* Increased opacity for brighter background */
+      color: #e0acff; /* Brighter purple text */
+      border: 1px solid rgba(155, 89, 182, 0.7); /* More visible border */
+      padding: 4px 10px;
+      font-size: 13px;
+      border-radius: 12px;
+      display: inline-block;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); /* Added subtle text shadow for better readability */
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-book"></i> Topics Management</h1>
+    <a href="/admin" class="back-button"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+  </div>
+  
+  <form method="GET" action="/admin/topics" class="search-bar">
+    <input type="text" name="search" class="search-input" placeholder="Search topics by title..." value="{{ search_query }}">
+    <button type="submit" class="search-button"><i class="fas fa-search"></i></button>
+  </form>
+  
+  <table class="topics-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>User</th>
+        <th>Questions</th>
+        <th>Preview</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for topic in topics %}
+      <tr>
+        <td>{{ topic.title }}</td>
+        <td>
+          <span class="user-badge">
+            {{ topic['user_name'] | join(',') }}
+          </span>
+        </td>
+        <td>
+          <span class="badge questions-count">{{ topic.questions|length }} questions</span>
+        </td>
+        <td>
+          <div class="question-preview">
+            {% for question in topic.questions %}
+            <div class="question-item">
+              <strong class="confidence-{{ question.confidence }}">Q{{ question.id + 1 }}:</strong> {{ question.question }}<br>
+              <strong>A:</strong> {{ question.answer.split('\r\n\r\n')[0] }}
+            </div>
+            {% endfor %}
+          </div>
+        </td>
+        <td>
+          <form action="/admin/topics/delete/{{ topic._id }}" method="POST" style="display: inline;">
+            <button type="submit" class="action-button danger-button" onclick="return confirm('Are you sure you want to delete this topic? All associated quizzes will also be deleted.')">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    document.querySelector('.search-button').addEventListener('click', function(e) {
+      const searchTerm = document.querySelector('.search-input').value.trim();
+      if (!searchTerm) {
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
