@@ -2,6 +2,8 @@ from flask import Flask, render_template, jsonify, request, redirect, Response, 
 import random, db, io, csv, pandas as pd, re, os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from datetime import datetime
+import traceback
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -386,6 +388,33 @@ def error_404_handler(err):
 @app.errorhandler(403)
 def error_403_handler(err):
     return render_template("HTTP Status Pages/403.html")
+
+@app.errorhandler(500)
+def error_500_handler(e):
+        # Send email notification
+    error_type = type(e).__name__
+    error_message = str(e)
+    traceback_info = traceback.format_exc()
+    
+    email_html = render_template('email_templates/error_notification.html',
+        error_type=error_type,
+        error_message=error_message,
+        traceback=traceback_info,
+        timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        debug=app.debug,
+        app_version='1.0.0',  # You would get this from your app config,
+        email=session['email']
+    )
+    msg = Mail(
+        from_email=SEND_EMAIL,
+        to_emails="christophelee2004@icloud.com",
+        subject="Website Error",
+        html_content=email_html   
+    )
+    sg = SendGridAPIClient(SENDGRID_API_KEY)
+    sg.send(msg)
+
+    return render_template("HTTP Status Pages/500.html")
 if __name__ == '__main__':
     app.run(debug=True)
 

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error Notification</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Monospace', monospace;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: left;
+            max-width: 800px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        .error-details {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+        }
+        .meta-info {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        .meta-info p {
+            margin: 5px 0;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+            text-align: center;
+        }
+        .timestamp {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: right;
+            margin-top: 20px;
+        }
+        .label {
+            font-weight: bold;
+            color: #fff;
+            display: inline-block;
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon"><i class="fas fa-bug"></i></div>
+        <h1>Server Error Notification</h1>
+        
+        <div class="meta-info">
+            <p><span class="label"><i class="fas fa-globe"></i> URL:</span> {{ request.url }}</p>
+            <p><span class="label"><i class="fas fa-user"></i> User:</span> {{ email }}</p>
+            <p><span class="label"><i class="fas fa-map-marker-alt"></i> Route:</span> {{ request.endpoint }}</p>
+            <p><span class="label"><i class="fas fa-clock"></i> Time:</span> {{ timestamp }}</p>
+            <p><span class="label"><i class="fas fa-desktop"></i> User Agent:</span> {{ request.user_agent }}</p>
+        </div>
+        
+        <h2>Error Details</h2>
+        <div class="error-details">
+            {{ error_type }}: {{ error_message }}
+            
+            {% if traceback %}
+            <hr>
+            Traceback:
+            {{ traceback }}
+            {% endif %}
+        </div>
+        
+        <div class="meta-info">
+            <p><span class="label"><i class="fas fa-info-circle"></i> Environment:</span> {{ 'Production' if not debug else 'Development' }}</p>
+            <p><span class="label"><i class="fas fa-server"></i> Server:</span> {{ request.host }}</p>
+            <p><span class="label"><i class="fas fa-code-branch"></i> Version:</span> {{ app_version }}</p>
+        </div>
+        
+        <div class="timestamp">
+            This email was generated automatically by the error handler at {{ timestamp }}
+        </div>
+    </div>
+</body>
+</html>
