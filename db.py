@@ -283,3 +283,6 @@ def edit_user(user_id, request):
     )
 def verify_user(user_id):
     db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'email_confirmed': True}})
+
+def delete_user(user_id):
+    db.users.delete_one({'_id': ObjectId(user_id)})
