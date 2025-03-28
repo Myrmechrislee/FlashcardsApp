@@ -465,7 +465,7 @@ def verify_user(user_id):
         abort(403)
     db.verify_user(user_id)
     return redirect("/admin/users")
-@app.route('/admin/users/delete/<user_id>')
+@app.route('/admin/users/delete/<user_id>', methods=["POST"])
 def delete_user(user_id):
     if "email" not in session:
         abort(403)
