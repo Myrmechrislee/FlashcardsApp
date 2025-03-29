@@ -3,6 +3,14 @@ from pymongo import MongoClient
 import gridfs
 from bson import ObjectId
 from datetime import datetime, timedelta
+from enum import Enum
+
+class SecurityLogSeverity(Enum):
+    Critical = 4
+    High = 3
+    Medium = 2
+    Low = 1
+    Info = 0
 
 client = MongoClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017/flashcards"))
 db = client.get_database()
@@ -90,15 +98,31 @@ def import_topic(email, title, df):
     db.users.update_one({"email": email}, {"$push": {"topics": res.inserted_id}})
     return len(questions)
 
-def test_login(email, password):
+def test_login(email, ip_address, password):
     password_hash = hash_password(password)
     user = db.users.find_one({"email": email, "password_hash": password_hash})
     if user == None: 
+        create_security_log("Login Failed",
+                            "system",
+                            ip_address,
+                            details=f"""A login attempt was made however did not find matching email, password_hash pair. 
+                            Email: {email},
+                            Password Hash: {password_hash}
+                            """,
+                            severity=SecurityLogSeverity.Low)
         return False, "" 
     else: 
+        create_security_log("Login Success",
+                            email,
+                            ip_address,
+                            details=f"""A login attempt was made and matching email, password_hash pair was found. 
+                            Email: {email},
+                            Password Hash: {password_hash}
+                            """,
+                            severity=SecurityLogSeverity.Info)
         return True, user
 
-def add_user(name, email, password):
+def add_user(name, email, password, ip_address):
     password_hash = hash_password(password)
     db.users.insert_one({
         "name": name,
@@ -110,6 +134,12 @@ def add_user(name, email, password):
         'email_confirmed': False,
         'is_admin': False
     })
+    create_security_log("Account Creation",
+                            "system",
+                            ip_address,
+                            details=f"""An account for {name} with email {email} was created. 
+                            """,
+                            severity=SecurityLogSeverity.Info)
 
 def update_profile_picture(email, profile_pic):
     file_id = fs.put(profile_pic, filename=profile_pic.filename, content_type=profile_pic.content_type)
@@ -307,3 +337,37 @@ def get_topic_holders(topic_id):
             }
         }
     }, {'name': 1}).to_list()]
+
+def create_security_log(event, user, ip_address, details="", severity=SecurityLogSeverity.Info, timestamp=datetime.now()):
+    db.security_logs.insert_one({
+        "event": event,
+        "user": user,
+        "ip_address": ip_address,
+        "details": details,
+        "severity": severity.value,
+        "timestamp": timestamp
+    })
+
+def search_security_logs(search="", severity="all"):
+    query = {}
+    if severity != "all":
+        severity = severity[0].upper() + severity[1:].lower()
+        query['severity'] = SecurityLogSeverity[severity].value
+    if search:
+        # Create a case-insensitive regex search across multiple fields
+        regex_pattern = {'$regex': f'.*{search}.*', '$options': 'i'}
+        query['$or'] = [
+            {'event': regex_pattern},
+            {'user': regex_pattern},
+            {'ip_address': regex_pattern},
+            {'details': regex_pattern}
+        ]
+    
+    # Find logs matching query and sort by timestamp descending (newest first)
+    logs_cursor = db.security_logs.find(query).sort('timestamp', -1)
+    
+    logs_list = logs_cursor.to_list()
+    for entry in logs_list:
+        entry["severity"] = SecurityLogSeverity(entry["severity"]).name
+    
+    return logs_list

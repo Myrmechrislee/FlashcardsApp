@@ -214,7 +214,7 @@ def login():
     if "email" in session:
         return redirect("/topics")
     if request.method == "POST":
-        success, user = db.test_login(request.form["email"], request.form["password"])
+        success, user = db.test_login(request.form["email"], request.remote_addr, request.form["password"])
         if success:
             session["email"] = user["email"]
             session["name"] = user["name"]
@@ -233,7 +233,7 @@ def create_account():
         if db.email_already_exists(request.form["email"]):
             flash("Email already exists", category="error")
         else:
-            db.add_user(request.form["name"], request.form["email"], request.form["password"])
+            db.add_user(request.form["name"], request.form["email"], request.form["password"], request.remote_addr)
             mail.send_verification_email(request.form["email"])
             flash("Account successfully added! A verification message has been sent. Please check your email. ")
     return render_template("create-account.html")
@@ -350,6 +350,12 @@ def error_404_handler(err):
 
 @app.errorhandler(403)
 def error_403_handler(err):
+    db.create_security_log("Attempted Forbidden Access",
+                           session.get("email", "not registered"),
+                           request.remote_addr,
+                           details=f"""There has been an restricted attempted access to {request.url}""",
+                           severity=db.SecurityLogSeverity.High 
+                           )
     return render_template("HTTP Status Pages/403.html")
 
 @app.errorhandler(500)
@@ -447,6 +453,22 @@ def admin_delete_topic(topic_id):
         flash('Failed to delete topic', 'error')
     return redirect("/admin/topics")
 
+@app.route('/admin/security-logs')
+def security_logs():
+    if "email" not in session:
+        abort(403)
+    if not db.get_user(session['email'])["is_admin"]:
+        abort(403)
+
+    search_query = request.args.get('search', '')
+    severity_filter = request.args.get('severity', "all")
+    
+    logs = db.search_security_logs(search_query, severity_filter)
+
+    return render_template('/admin/security-logs.html',
+                        logs=logs,
+                        current_severity=severity_filter,
+                        search_query=search_query)
 if __name__ == '__main__':
     app.run(debug=True)
 
