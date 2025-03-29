@@ -1,19 +1,10 @@
 from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session, send_file, abort
-import random, db, io, csv, pandas as pd, re, os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
-from datetime import datetime
-import traceback
-from flask_paginate import Pagination, get_page_args
+import random, db, io, csv, pandas as pd, re, mail
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = "ce4f9f579b2a22b536d9fa989b0847ce"
 app.config['SESSION_COOKIE_NAME'] = "flask_app_session"
-
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-SEND_EMAIL = os.environ.get("SENDER_EMAIL", "flashcards@leechengzhu.com")
-app_url = os.environ.get("APP_URL", "http://localhost:8080/").rstrip('/')
 
 @app.route('/topics', methods=["GET", "POST"])
 def topics():
@@ -243,16 +234,7 @@ def create_account():
             flash("Email already exists", category="error")
         else:
             db.add_user(request.form["name"], request.form["email"], request.form["password"])
-            verification_code = db.set_verification_code(request.form["email"])
-            html_content = render_template('email_templates/confimation.html', verification_link=f'{app_url}/verify-email?token={verification_code}')
-            msg = Mail(
-                from_email=SEND_EMAIL,
-                to_emails=request.form["email"],
-                subject="Email Verification",
-                html_content=html_content
-            )
-            sg = SendGridAPIClient(SENDGRID_API_KEY)
-            sg.send(msg)
+            mail.send_verification_email(request.form["email"])
             flash("Account successfully added! A verification message has been sent. Please check your email. ")
     return render_template("create-account.html")
 
@@ -315,17 +297,7 @@ def validate_email_message():
 def send_verification_email():
     if "email" not in session:
         return redirect(f'/?next={request.url}')
-    
-    verification_code = db.set_verification_code(session['email'])
-    html_content = render_template('email_templates/confimation.html', verification_link=f'{app_url}/verify-email?token={verification_code}')
-    msg = Mail(
-        from_email=SEND_EMAIL,
-        to_emails=session['email'],
-        subject="Email Verification",
-        html_content=html_content
-    )
-    sg = SendGridAPIClient(SENDGRID_API_KEY)
-    sg.send(msg)
+    mail.send_verification_email(session['email'])
     return render_template('message.html', title='Email Sent', body="""<p>The verification has been sent. Please check your email. </p>
     """)
 @app.route("/verify-email")
@@ -352,17 +324,7 @@ def forgot_password():
     if not db.email_already_exists(email):
         flash("Email isn't registered. ")
         return render_template('forgot-password.html')
-    
-    url = db.set_reset_password_link(email)
-    html_content = render_template('email_templates/reset-password.html', reset_password_link=app_url + url)
-    msg = Mail(
-        from_email=SEND_EMAIL,
-        to_emails=email,
-        subject="Reset Password",
-        html_content=html_content
-    )
-    sg = SendGridAPIClient(SENDGRID_API_KEY)
-    sg.send(msg)
+    mail.send_password_reset_link(email)
     return render_template('message.html', title="Password Reset", body="The instructions to reset your password has been sent. Please check your email. ")
 
 @app.route('/reset-password', methods=["GET", "POST"])
@@ -392,29 +354,7 @@ def error_403_handler(err):
 
 @app.errorhandler(500)
 def error_500_handler(e):
-    # Send email notification
-    error_type = type(e).__name__
-    error_message = str(e)
-    traceback_info = traceback.format_exc()
-    
-    email_html = render_template('email_templates/error_notification.html',
-        error_type=error_type,
-        error_message=error_message,
-        traceback=traceback_info,
-        timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        debug=app.debug,
-        app_version='1.0.0',  # You would get this from your app config,
-        email=session['email']
-    )
-    msg = Mail(
-        from_email=SEND_EMAIL,
-        to_emails="christophelee2004@icloud.com",
-        subject="Website Error",
-        html_content=email_html   
-    )
-    sg = SendGridAPIClient(SENDGRID_API_KEY)
-    sg.send(msg)
-
+    mail.send_error_email(session['email'], app, e)
     return render_template("HTTP Status Pages/500.html")
 
 @app.route("/admin")
