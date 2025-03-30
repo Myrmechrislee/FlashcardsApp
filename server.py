@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request, redirect, Response, flash, session, send_file, abort
-import random, db, io, csv, pandas as pd, re, mail
+from functools import wraps
+import random, db, io, csv, pandas as pd, re, mail, security
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="pages")
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -8,16 +9,10 @@ app.config['SESSION_COOKIE_NAME'] = "flask_app_session"
 
 @app.route('/topics', methods=["GET", "POST"])
 def topics():
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
-    if not db.email_is_verified(session['email']):
-        return redirect('/validate-email-message')
     return render_template("topics.html", user=db.get_user(session["email"]), topics=db.get_topics(session["email"]), is_admin=db.get_user(session['email'])['is_admin'])
 
 @app.route("/flash/<tid>/<qid>")
 def flashcard(tid, qid):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     topic = db.get_topic(tid)
     if topic == None:
         abort(404)
@@ -31,14 +26,11 @@ def flashcard(tid, qid):
 
 @app.route("/quiz/<tid>")
 def quiz(tid):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     topic = db.get_topic(tid)
     if topic == None:
         abort(404)
     if not db.has_access_to_topic(session["email"], tid):
         abort(403)
-    
     questions = topic['questions']
     if request.args.get('randomize', default=False, type=bool):
         questions = random.sample(questions, len(questions))
@@ -50,8 +42,6 @@ def quiz(tid):
 
 @app.route("/quizlet/<quizid>/<qid>")
 def quizlet(quizid, qid):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     if not db.has_access_to_quiz(session["email"], quizid):
         abort(403)
     quiz = db.get_quiz(quizid)
@@ -65,8 +55,6 @@ def quizlet(quizid, qid):
 
 @app.route("/answer-quizlet/<quizid>/<qid>")
 def answer_quizlet(quizid, qid):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     if not db.has_access_to_quiz(session["email"], quizid):
         abort(403)
     response = request.args.get("response")
@@ -87,8 +75,6 @@ def quiz_results(quizid):
     return render_template('quiz-results.html', **db.get_quiz_stats(quizid))
 @app.route("/flash/<tid>")
 def flash_card_infinite(tid):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     topic = db.get_topic(tid)
     if topic == None:
         abort(404)
@@ -110,8 +96,6 @@ def submit_confidence():
         return message, 400
 @app.route("/add-topic", methods=["GET", "POST"])
 def add_topic():
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     if request.method == "POST":
         db.add_topic(
             session["email"],
@@ -124,8 +108,6 @@ def add_topic():
 
 @app.route("/topic-start/<id>")
 def topic_start(id):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
@@ -135,8 +117,6 @@ def topic_start(id):
 
 @app.route('/edit-topic/<id>', methods=['GET', 'POST'])
 def edit_topic(id):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
@@ -158,8 +138,6 @@ def edit_topic(id):
 
 @app.route("/delete-topic/<id>")
 def delete_topic(id):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
@@ -170,8 +148,6 @@ def delete_topic(id):
 
 @app.route("/export-csv/<id>")
 def export_csv(id):
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
@@ -190,8 +166,6 @@ def export_csv(id):
 
 @app.route("/import-topic", methods=["GET", "POST"])
 def import_topic():
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     if request.method == "POST":
         title = request.form.get('title')
         file = request.files.get('csv-file')
@@ -210,6 +184,7 @@ def import_topic():
         flash(f"Successfully imported topic '{title}' with {q} questions!", "success")
     return render_template("import-menu.html")
 @app.route("/", methods=["GET", "POST"])
+@security.no_authentication
 def login():
     if "email" in session:
         return redirect("/topics")
@@ -228,6 +203,7 @@ def signout():
     session.clear()
     return redirect("/")
 @app.route("/create-account", methods=["GET", "POST"])
+@security.no_authentication
 def create_account():
     if request.method == "POST":
         if db.email_already_exists(request.form["email"]):
@@ -240,8 +216,6 @@ def create_account():
 
 @app.route("/edit-profile", methods=["GET", "POST"])
 def edit_profile():
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     if request.method == "POST":
         try:
             if "profile-pic" in request.files:
@@ -288,19 +262,16 @@ def change_password():
     return render_template("change-password.html")
 @app.route('/validate-email-message')
 def validate_email_message():
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     return render_template('message.html', title = 'Please Validate Your Email', body="""<p>We've sent a verification email to your inbox. Please check your email and click on the link to validate your account.</p>
-        <p>If you didn't receive the email, you can <a href="/send-verification-email" class="link">resend the verification email</a>.</p>""")
+        <p>If you didn't receive the email, you can <a href="/send-verification-email" class="link">resend the verification email</a> or you can try another account by first <a href="/signout" class="link">signing out</a>.</p>""")
 
 @app.route('/send-verification-email')
 def send_verification_email():
-    if "email" not in session:
-        return redirect(f'/?next={request.url}')
     mail.send_verification_email(session['email'])
     return render_template('message.html', title='Email Sent', body="""<p>The verification has been sent. Please check your email. </p>
     """)
 @app.route("/verify-email")
+@security.no_authentication
 def verify_email():
     token_sent = request.args.get('token')
     if db.validate_code(token_sent):
@@ -317,6 +288,7 @@ def verify_email():
     return render_template('message.html', **data)
 
 @app.route("/forgot-password", methods=["GET", "POST"])
+@security.no_authentication
 def forgot_password():
     if request.method == "GET":
         return render_template('forgot-password.html')
@@ -328,6 +300,7 @@ def forgot_password():
     return render_template('message.html', title="Password Reset", body="The instructions to reset your password has been sent. Please check your email. ")
 
 @app.route('/reset-password', methods=["GET", "POST"])
+@security.no_authentication
 def reset_password():
     tokens = request.args['tokens']
     if request.method == "GET":
@@ -365,32 +338,22 @@ def error_500_handler(e):
 
 @app.route("/admin")
 def server_dashboard():
-    if "email" not in session:
-        abort(403)
-    if not db.get_user(session['email'])["is_admin"]:
-        abort(403)
     data = {
         'user_count': db.get_user_count(),
         'topics_count': db.get_topics_count()
     }
     return render_template("admin/server.html", **data)
 @app.route("/admin/users")
+
 def users_view():
-    if "email" not in session:
-        abort(403)
-    if not db.get_user(session['email'])["is_admin"]:
-        abort(403)
     search_query = request.args.get('search', '')
     return render_template('/admin/users.html', 
                         users=db.search_users(search_query),
                         search_query=search_query)
 
 @app.route('/admin/users/edit/<user_id>', methods=['GET', 'POST'])
+
 def edit_user(user_id):
-    if "email" not in session:
-        abort(403)
-    if not db.get_user(session['email'])["is_admin"]:
-        abort(403)
     user=db.get_user_by_id(user_id)
     if not user:
         abort(404)
@@ -404,28 +367,18 @@ def edit_user(user_id):
     
     return render_template('/admin/edit-user.html', user=user)
 @app.route('/admin/users/verify/<user_id>')
+
 def verify_user(user_id):
-    if "email" not in session:
-        abort(403)
-    if not db.get_user(session['email'])["is_admin"]:
-        abort(403)
     db.verify_user(user_id)
     return redirect("/admin/users")
 @app.route('/admin/users/delete/<user_id>', methods=["POST"])
+
 def delete_user(user_id):
-    if "email" not in session:
-        abort(403)
-    if not db.get_user(session['email'])["is_admin"]:
-        abort(403)
     db.delete_user(user_id)
     return redirect("/admin/users")
 
 @app.route('/admin/topics')
 def manage_topics():
-    if "email" not in session:
-        abort(403)
-    if not db.get_user(session['email'])["is_admin"]:
-        abort(403)
     # Get search query from URL parameters
     search_query = request.args.get('search', '').strip()
     
@@ -442,10 +395,6 @@ def manage_topics():
 
 @app.route('/admin/topics/delete/<topic_id>', methods=['POST'])
 def admin_delete_topic(topic_id):
-    if "email" not in session:
-        abort(403)
-    if not db.get_user(session['email'])["is_admin"]:
-        abort(403)
     success = db.delete_topic(topic_id)
     if success:
         flash('Topic deleted successfully', 'success')
@@ -455,11 +404,6 @@ def admin_delete_topic(topic_id):
 
 @app.route('/admin/security-logs')
 def security_logs():
-    if "email" not in session:
-        abort(403)
-    if not db.get_user(session['email'])["is_admin"]:
-        abort(403)
-
     search_query = request.args.get('search', '')
     severity_filter = request.args.get('severity', "all")
     
@@ -469,6 +413,32 @@ def security_logs():
                         logs=logs,
                         current_severity=severity_filter,
                         search_query=search_query)
+
+@app.before_request
+def before_request():
+     # Skip authentication check for static files
+    if request.endpoint == 'static':
+        return
+    
+    # Get the view function that will handle the request
+    view_func = app.view_functions.get(request.endpoint)
+    
+    if view_func is None:
+        return
+    
+    # Check if the view has the authenticated decorator
+    needs_auth = not getattr(view_func, 'no_authentication', False)
+
+    if needs_auth:
+        # Check if user is logged in
+        if 'email' not in session:
+            return redirect(f'/?next={request.url}')  # Redirect to login page
+        if not db.email_is_verified(session['email']) and request.endpoint not in ["validate_email_message", "signout", "send_verification_email"]:
+            return redirect('/validate-email-message')
+    
+    # Check admin requirement
+    if request.path.startswith("/admin") and not db.get_user(session['email'])['is_admin']:
+        abort(403)
 if __name__ == '__main__':
     app.run(debug=True)
 
