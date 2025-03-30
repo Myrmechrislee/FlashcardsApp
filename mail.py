@@ -9,6 +9,8 @@ SEND_EMAIL = os.environ.get("SENDER_EMAIL", "flashcards@leechengzhu.com")
 app_url = os.environ.get("APP_URL", "http://localhost:8080/").rstrip('/')
 
 def send_verification_email(to_email):
+    if not SENDGRID_API_KEY:
+        return
     verification_code = db.set_verification_code(to_email)
     html_content = render_template('email_templates/confimation.html', verification_link=f'{app_url}/verify-email?token={verification_code}')
     msg = Mail(
@@ -21,6 +23,8 @@ def send_verification_email(to_email):
     sg.send(msg)
 
 def send_password_reset_link(to_email):
+    if not SENDGRID_API_KEY:
+        return
     url = db.set_reset_password_link(to_email)
     html_content = render_template('email_templates/reset-password.html', reset_password_link=app_url + url)
     msg = Mail(
@@ -33,6 +37,8 @@ def send_password_reset_link(to_email):
     sg.send(msg)
 
 def send_error_email(email, app, e):
+    if not SENDGRID_API_KEY:
+        return
     # Send email notification
     error_type = type(e).__name__
     error_message = str(e)
