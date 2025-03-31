@@ -189,7 +189,7 @@ def login():
     if "email" in session:
         return redirect("/topics")
     if request.method == "POST":
-        success, user = db.test_login(request.form["email"], request.headers.get('X-Forwarded-Host', request.remote_addr), request.form["password"])
+        success, user = db.test_login(request.form["email"], request.headers.get('X-Forwarded-For', request.remote_addr), request.form["password"])
         if success:
             session["email"] = user["email"]
             session["name"] = user["name"]
@@ -209,7 +209,7 @@ def create_account():
         if db.email_already_exists(request.form["email"]):
             flash("Email already exists", category="error")
         else:
-            db.add_user(request.form["name"], request.form["email"], request.form["password"], request.headers.get('X-Forwarded-Host', request.headers.get('X-Forwarded-Host', request.remote_addr)))
+            db.add_user(request.form["name"], request.form["email"], request.form["password"], request.headers.get('X-Forwarded-For', request.headers.get('X-Forwarded-For', request.remote_addr)))
             mail.send_verification_email(request.form["email"])
             flash("Account successfully added! A verification message has been sent. Please check your email. ")
     return render_template("create-account.html")
@@ -325,7 +325,7 @@ def error_404_handler(err):
 def error_403_handler(err):
     db.create_security_log("Attempted Forbidden Access",
                            session.get("email", "not registered"),
-                           request.headers.get('X-Forwarded-Host', request.remote_addr),
+                           request.headers.get('X-Forwarded-For', request.remote_addr),
                            details=f"""There has been an restricted attempted access to {request.url}""",
                            severity=db.SecurityLogSeverity.High 
                            )
