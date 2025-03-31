@@ -1,0 +1,356 @@
+<!-- templates/about.html -->
+{% extends "layout.html" %}
+
+{% block title %}Home - FlashCards{% endblock %}
+
+{% block extra_css %}
+body {
+  background-color: #f8f8f8;
+  font-family: monospace;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+.navbar {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+.logo i {
+  margin-right: 10px;
+}
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 30px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.cta-button {
+  background: white;
+  color: #667eea !important;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s;
+  text-decoration: none !important;
+  display: inline-block;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  border: 2px solid white;
+}
+.cta-button:hover {
+  background: #667eea;
+  color: white !important;
+}
+/* Navbar CTA button specific styles (reversed) */
+.nav-links .cta-button {
+  background: transparent;
+  color: white !important;
+  border: 2px solid white;
+}
+.nav-links .cta-button:hover {
+  background: white;
+  color: #667eea !important;
+}
+.hero {
+  display: flex;
+  align-items: center;
+  padding: 60px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.hero-text {
+  flex: 1;
+  padding-right: 40px;
+}
+.hero-image {
+  flex: 1;
+  text-align: center;
+}
+.hero-image img {
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: #333;
+}
+h2 {
+  font-size: 36px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+.subtitle {
+  font-size: 20px;
+  margin-bottom: 30px;
+  color: #666;
+  line-height: 1.6;
+}
+.features {
+  background: white;
+  padding: 80px 40px;
+  text-align: center;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  max-width: 1200px;
+  margin: 40px auto 0;
+}
+.feature-card {
+  background: #f9f9f9;
+  padding: 30px;
+  border-radius: 10px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.feature-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.1);
+}
+.feature-icon {
+  font-size: 40px;
+  margin-bottom: 20px;
+  color: #667eea;
+}
+.feature-title {
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+.feature-desc {
+  color: #666;
+  line-height: 1.6;
+}
+/* How It Works Section */
+.how-it-works {
+  background: #f8f8f8;
+  padding: 80px 40px;
+  text-align: center;
+}
+.steps-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+}
+.step {
+  flex: 1;
+  min-width: 250px;
+  max-width: 300px;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+.step-number {
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+.step-icon {
+  font-size: 40px;
+  margin-bottom: 20px;
+  color: #667eea;
+}
+.step-title {
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: #333;
+}
+.step-desc {
+  color: #666;
+  line-height: 1.6;
+}
+.cta-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.cta-title {
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+.cta-subtitle {
+  font-size: 18px;
+  margin-bottom: 40px;
+  opacity: 0.9;
+}
+.footer {
+  background: #333;
+  color: #aaa;
+  padding: 40px;
+  text-align: center;
+  font-size: 14px;
+}
+.footer-links {
+  margin-top: 20px;
+}
+.footer-links a {
+  color: #ddd;
+  text-decoration: none;
+  margin: 0 15px;
+}
+.footer-links a:hover {
+  color: white;
+}
+.hero-cta {
+  padding: 14px 32px;
+  margin-top: 20px;
+}
+.bottom-cta {
+  padding: 14px 32px;
+}
+.cta-section {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 80px 40px;
+  text-align: center !important;
+}
+.main-content {
+  padding: 0;
+  margin: 0;
+  max-width: unset;
+}
+{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <h1><i class="fas fa-lightbulb"></i> Master Anything with Smart Flash Cards</h1>
+    <p class="subtitle">
+      FlashCards helps you learn faster and remember longer with scientifically-proven 
+      spaced repetition and customizable flash cards for any subject.
+    </p>
+    <a href="/create-account" class="cta-button hero-cta">
+      <i class="fas fa-play"></i> Start Learning Now
+    </a>
+  </div>
+  <div class="hero-image">
+    <img src="demo.png" alt="FlashCards App Preview">
+  </div>
+</section>
+
+<section class="features" id="features">
+  <h2><i class="fas fa-gem"></i> Why Choose FlashCards?</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-redo"></i></div>
+      <h3 class="feature-title">Spaced Repetition</h3>
+      <p class="feature-desc">
+        Our algorithm schedules reviews at optimal intervals to help you retain information with minimal effort.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-sync-alt"></i></div>
+      <h3 class="feature-title">Multi-Device Sync</h3>
+      <p class="feature-desc">
+        Access your flash cards anywhere - on your phone, tablet, or computer. Your progress syncs automatically.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-paint-brush"></i></div>
+      <h3 class="feature-title">Rich Formatting</h3>
+      <p class="feature-desc">
+        Add images, LaTeX equations, and formatting to create visually engaging cards for any subject.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+      <h3 class="feature-title">Progress Tracking</h3>
+      <p class="feature-desc">
+        Detailed analytics show your learning patterns and help you identify areas that need more focus.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-users"></i></div>
+      <h3 class="feature-title">Shared Decks</h3>
+      <p class="feature-desc">
+        Discover and use flash card decks created by other learners, or share your own with the community.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-stopwatch"></i></div>
+      <h3 class="feature-title">Quick Study</h3>
+      <p class="feature-desc">
+        Perfect for quick study sessions during your commute or between classes.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="how-it-works" id="how-it-works">
+  <h2><i class="fas fa-question-circle"></i> How It Works</h2>
+  <div class="steps-container">
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-icon"><i class="fas fa-plus-circle"></i></div>
+      <h3 class="step-title">Create Your Cards</h3>
+      <p class="step-desc">
+        Easily create flash cards with text, images, and formatting. Organize them into decks by subject or topic.
+      </p>
+    </div>
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-icon"><i class="fas fa-mobile-alt"></i></div>
+      <h3 class="step-title">Study Anywhere</h3>
+      <p class="step-desc">
+        Access your cards on all your devices. Study during spare moments throughout your day.
+      </p>
+    </div>
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-icon"><i class="fas fa-brain"></i></div>
+      <h3 class="step-title">Smart Review</h3>
+      <p class="step-desc">
+        Our system tracks what you know and shows you cards at the perfect time for optimal retention.
+      </p>
+    </div>
+    <div class="step">
+      <div class="step-number">4</div>
+      <div class="step-icon"><i class="fas fa-trophy"></i></div>
+      <h3 class="step-title">Master Your Material</h3>
+      <p class="step-desc">
+        Watch your knowledge grow as you consistently remember more with less effort.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-container">
+    <h2 class="cta-title" style="color: white;"><i class="fas fa-magic"></i> Ready to Transform Your Learning?</h2>
+    <p class="cta-subtitle"  style="color: white;">
+      Join thousands of students and professionals who use FlashCards to master languages, 
+      prepare for exams, and retain important information.
+    </p>
+    <a href="/create-account" class="cta-button bottom-cta">
+      <i class="fas fa-user-plus"></i> Create Free Account
+    </a>
+  </div>
+</section>
+{% endblock %}

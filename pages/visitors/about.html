@@ -1,0 +1,211 @@
+<!-- templates/about.html -->
+{% extends "layout.html" %}
+
+{% block title %}About - FlashCards{% endblock %}
+
+{% block extra_css %}
+body {
+  background-color: #f8f8f8;
+  font-family: monospace;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+.navbar {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+.logo i {
+  margin-right: 10px;
+}
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 30px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.cta-button {
+  background: white;
+  color: #667eea !important;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s;
+  text-decoration: none !important;
+  display: inline-block;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  border: 2px solid white;
+}
+.cta-button:hover {
+  background: #667eea;
+  color: white !important;
+}
+/* Navbar CTA button specific styles (reversed) */
+.nav-links .cta-button {
+  background: transparent;
+  color: white !important;
+  border: 2px solid white;
+}
+.nav-links .cta-button:hover {
+  background: white;
+  color: #667eea !important;
+}
+.main-content {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 40px;
+}
+.about-container {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+h1 {
+  font-size: 36px;
+  margin-bottom: 30px;
+  color: #333;
+}
+h2 {
+  font-size: 28px;
+  margin: 40px 0 20px;
+  color: #667eea;
+}
+p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.creator-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: 40px 0;
+}
+.creator-photo {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+  border: 5px solid #f0f4ff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+.creator-name {
+  font-size: 28px;
+  margin: 10px 0;
+}
+.creator-title {
+  color: #667eea;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #f0f4ff;
+  color: #667eea;
+  border-radius: 50%;
+  font-size: 18px;
+  transition: all 0.3s;
+}
+.social-link:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-3px);
+}
+.mission-box {
+  background: #f0f4ff;
+  padding: 30px;
+  border-left: 4px solid #667eea;
+  margin: 30px 0;
+  border-radius: 0 8px 8px 0;
+}
+.footer {
+  background: #333;
+  color: #aaa;
+  padding: 40px;
+  text-align: center;
+  font-size: 14px;
+}
+.footer-links {
+  margin-top: 20px;
+}
+.footer-links a {
+  color: #ddd;
+  text-decoration: none;
+  margin: 0 15px;
+}
+.footer-links a:hover {
+  color: white;
+}
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="about-container">
+    <h1><i class="fas fa-info-circle"></i> About FlashCards</h1>
+    
+    <p>FlashCards was created by Christophe Lee, a developer passionate about creating tools that make learning more effective and enjoyable.</p>
+    
+    <div class="creator-section">
+      <img src="/profile.jpeg" alt="Christophe Lee" class="creator-photo">
+      <h2 class="creator-name">Christophe Lee</h2>
+      <p class="creator-title">Creator & Developer</p>
+      <div class="social-links">
+        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+      </div>
+    </div>
+    
+    <h2><i class="fas fa-lightbulb"></i> The Story Behind FlashCards</h2>
+    <p>As a lifelong learner, Christophe found himself constantly struggling to retain information across various subjects. Existing learning tools either lacked flexibility or were too cumbersome for daily use.</p>
+    
+    <p>In 2023, he decided to build FlashCards as a personal solution - a clean, intuitive app focused specifically on helping learners master information through spaced repetition. What began as a side project quickly grew into a full-fledged application used by thousands.</p>
+    
+    <div class="mission-box">
+      <h3><i class="fas fa-rocket"></i> The Mission</h3>
+      <p>To create learning tools that are simple enough for casual use but powerful enough for serious study, helping people transform information into lasting knowledge.</p>
+    </div>
+    
+    <h2><i class="fas fa-code"></i> Built With Care</h2>
+    <p>Every aspect of FlashCards reflects Christophe's attention to detail:</p>
+    <ul>
+      <li>Minimalist design that keeps the focus on learning</li>
+      <li>Custom spaced repetition algorithm developed through testing</li>
+      <li>Responsive interface that works seamlessly across devices</li>
+      <li>Regular updates based on user feedback</li>
+    </ul>
+    
+    <h2><i class="fas fa-handshake"></i> Get In Touch</h2>
+    <p>Christophe welcomes feedback and suggestions from all users. If you have ideas for improving FlashCards or just want to share your learning journey, please <a href="/contact">reach out</a>!</p>
+    
+    <p>Your experience with FlashCards helps shape its future development and ensures it continues to meet learners' needs.</p>
+  </div>
+</div>
+{% endblock %}

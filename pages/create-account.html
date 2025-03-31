@@ -60,7 +60,7 @@
       background-color: rgba(255, 255, 255, 0.6);
       transform: scale(1.05);
     }
-    .login-link {
+    .login-link, .home-link {
       margin-top: 15px;
       display: block;
       color: white;
@@ -68,7 +68,7 @@
       font-size: 16px;
       transition: color 0.3s;
     }
-    .login-link:hover {
+    .login-link:hover, .home-link:hover {
       color: rgba(255, 255, 255, 0.7);
     }
     .error-message {
@@ -87,6 +87,12 @@
       font-weight: bold;
       margin-bottom: 10px;
       font-family: 'Courier New', monospace;
+    }
+    .links-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
   </style>
 </head>
@@ -113,7 +119,11 @@
       
       <button type="submit" class="account-button">Sign Up</button>
     </form>
-    <a href="/" class="login-link">Already have an account? Login</a>
+    
+    <div class="links-container">
+      <a href="/login" class="login-link">Already have an account? Login</a>
+      <a href="/" class="home-link">← Go to Homepage</a>
+    </div>
   </div>
 
   <script>

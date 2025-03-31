@@ -1,0 +1,298 @@
+<!-- templates/contact.html -->
+{% extends "layout.html" %}
+
+{% block title %}Contact Us - FlashCards{% endblock %}
+
+{% block extra_css %}
+body {
+  background-color: #f8f8f8;
+  font-family: monospace;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+.navbar {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+.logo i {
+  margin-right: 10px;
+}
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 30px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.cta-button {
+  background: white;
+  color: #667eea !important;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s;
+  text-decoration: none !important;
+  display: inline-block;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  border: 2px solid white;
+}
+.cta-button:hover {
+  background: #667eea;
+  color: white !important;
+}
+/* Navbar CTA button specific styles (reversed) */
+.nav-links .cta-button {
+  background: transparent;
+  color: white !important;
+  border: 2px solid white;
+}
+.nav-links .cta-button:hover {
+  background: white;
+  color: #667eea !important;
+}
+.main-content {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 40px;
+}
+.contact-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+.contact-info {
+  flex: 1;
+  min-width: 300px;
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+.contact-form {
+  flex: 1;
+  min-width: 300px;
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+h1 {
+  font-size: 36px;
+  margin-bottom: 30px;
+  color: #333;
+}
+h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #667eea;
+}
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 25px;
+}
+.info-icon {
+  font-size: 24px;
+  color: #667eea;
+  margin-right: 15px;
+  margin-top: 3px;
+}
+.info-content h3 {
+  margin: 0 0 5px 0;
+  font-size: 20px;
+}
+.info-content p {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+input, textarea, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+textarea {
+  height: 150px;
+  resize: vertical;
+}
+.submit-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white !important;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 6px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 20px rgba(102, 126, 234, 0.3);
+}
+.social-links {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #f0f4ff;
+  color: #667eea;
+  border-radius: 50%;
+  font-size: 18px;
+  transition: all 0.3s;
+}
+.social-link:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-3px);
+}
+.footer {
+  background: #333;
+  color: #aaa;
+  padding: 40px;
+  text-align: center;
+  font-size: 14px;
+}
+.footer-links {
+  margin-top: 20px;
+}
+.footer-links a {
+  color: #ddd;
+  text-decoration: none;
+  margin: 0 15px;
+}
+.footer-links a:hover {
+  color: white;
+}
+/* Flash message styles */
+.flash-message {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  text-align: center;
+}
+{% endblock %}
+
+{% block content %}
+<h1><i class="fas fa-envelope"></i> Contact Us</h1>
+<p>Have questions, feedback, or need support? We'd love to hear from you!</p>
+
+<!-- Flash messages display -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash-message">
+      {% for message in messages %}
+        {{ message }}
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="contact-container">
+  <div class="contact-info">
+    <h2><i class="fas fa-info-circle"></i> Get in Touch</h2>
+    
+    <div class="info-item">
+      <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+      <div class="info-content">
+        <h3>Location</h3>
+        <p>Point Cook<br>Melbourne Australia</p>
+      </div>
+    </div>
+    
+    <div class="info-item">
+      <div class="info-icon"><i class="fas fa-envelope"></i></div>
+      <div class="info-content">
+        <h3>Email Us</h3>
+        <p>General Inquiries: <a href="mailto:christophe@flashcards.app">christophe@flashcards.app</a><br>
+      </div>
+    </div>
+    
+    <div class="info-item">
+      <div class="info-icon"><i class="fas fa-phone-alt"></i></div>
+      <div class="info-content">
+        <h3>Call Us</h3>
+        <p>+61 0412 061 159</p>
+      </div>
+    </div>
+    
+    <!-- <h3>Follow Us</h3>
+    <div class="social-links">
+      <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+      <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+      <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+    </div> -->
+  </div>
+  
+  <div class="contact-form">
+    <h2><i class="fas fa-paper-plane"></i> Send Us a Message</h2>
+    <form method="POST">
+      <div class="form-group">
+        <label for="name">Your Name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="subject">Subject</label>
+        <select id="subject" name="subject" required>
+          <option value="">Select a subject</option>
+          <option value="support">Technical Support</option>
+          <option value="feedback">Product Feedback</option>
+          <option value="business">Business Inquiry</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="message">Your Message</label>
+        <textarea id="message" name="message" required></textarea>
+      </div>
+      
+      <button type="submit" class="submit-btn">
+        <i class="fas fa-paper-plane"></i> Send Message
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

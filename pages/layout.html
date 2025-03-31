@@ -1,0 +1,169 @@
+<!-- templates/layout.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}FlashCards{% endblock %}</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #f8f8f8;
+      font-family: monospace;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .navbar {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .logo i {
+      margin-right: 10px;
+    }
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      margin-left: 30px;
+      padding: 8px 15px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .cta-button {
+      background: white;
+      color: #667eea !important;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: all 0.3s;
+      text-decoration: none !important;
+      display: inline-block;
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      border: 2px solid white;
+    }
+    .cta-button:hover {
+      background: #667eea;
+      color: white !important;
+    }
+    .nav-links .cta-button {
+      background: transparent;
+      color: white !important;
+      border: 2px solid white;
+    }
+    .nav-links .cta-button:hover {
+      background: white;
+      color: #667eea !important;
+    }
+    .main-content {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 40px;
+    }
+    .content-container {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    h1 {
+      font-size: 36px;
+      margin-bottom: 30px;
+      color: #333;
+    }
+    h2 {
+      font-size: 28px;
+      margin: 30px 0 20px;
+      color: #667eea;
+    }
+    h3 {
+      font-size: 22px;
+      margin: 25px 0 15px;
+    }
+    p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+    ul, ol {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    .highlight {
+      background-color: #f0f4ff;
+      padding: 15px;
+      border-left: 4px solid #667eea;
+      margin: 20px 0;
+    }
+    .last-updated {
+      font-style: italic;
+      color: #888;
+      margin-top: 40px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+    .footer {
+      background: #333;
+      color: #aaa;
+      padding: 40px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .footer-links {
+      margin-top: 20px;
+    }
+    .footer-links a {
+      color: #ddd;
+      text-decoration: none;
+      margin: 0 15px;
+    }
+    .footer-links a:hover {
+      color: white;
+    }
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo"><i class="fas fa-brain"></i>FlashCards</div>
+    <div class="nav-links">
+      <a href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a>
+      <a href="/#features"><i class="fas fa-star"></i> Features</a>
+      <a href="/#how-it-works"><i class="fas fa-question-circle"></i> How It Works</a>
+      <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Log In</a>
+      <a href="{{ url_for('create_account') }}" class="cta-button"><i class="fas fa-rocket"></i> Get Started</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer class="footer">
+    <p><i class="far fa-copyright"></i> 2025 FlashCards. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('privacy') }}"><i class="fas fa-lock"></i> Privacy Policy</a>
+      <a href="{{ url_for('terms') }}"><i class="fas fa-file-contract"></i> Terms of Service</a>
+      <a href="{{ url_for('contact') }}"><i class="fas fa-envelope"></i> Contact Us</a>
+      <a href="{{ url_for('about') }}"><i class="fas fa-info-circle"></i> About</a>
+    </div>
+  </footer>
+</body>
+</html>

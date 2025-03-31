@@ -1,0 +1,225 @@
+<!-- templates/about.html -->
+{% extends "layout.html" %}
+
+{% block title %}Terms of Service - FlashCards{% endblock %}
+
+{% block extra_css %}
+body {
+  background-color: #f8f8f8;
+  font-family: monospace;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+.navbar {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+.logo i {
+  margin-right: 10px;
+}
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 30px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.cta-button {
+  background: white;
+  color: #667eea !important;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s;
+  text-decoration: none !important;
+  display: inline-block;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  border: 2px solid white;
+}
+.cta-button:hover {
+  background: #667eea;
+  color: white !important;
+}
+/* Navbar CTA button specific styles (reversed) */
+.nav-links .cta-button {
+  background: transparent;
+  color: white !important;
+  border: 2px solid white;
+}
+.nav-links .cta-button:hover {
+  background: white;
+  color: #667eea !important;
+}
+.main-content {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 40px;
+}
+.terms-container {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+h1 {
+  font-size: 36px;
+  margin-bottom: 30px;
+  color: #333;
+}
+h2 {
+  font-size: 28px;
+  margin: 30px 0 20px;
+  color: #667eea;
+}
+h3 {
+  font-size: 22px;
+  margin: 25px 0 15px;
+}
+p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+ul, ol {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 10px;
+}
+.highlight {
+  background-color: #f0f4ff;
+  padding: 15px;
+  border-left: 4px solid #667eea;
+  margin: 20px 0;
+}
+.last-updated {
+  font-style: italic;
+  color: #888;
+  margin-top: 40px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+.footer {
+  background: #333;
+  color: #aaa;
+  padding: 40px;
+  text-align: center;
+  font-size: 14px;
+}
+.footer-links {
+  margin-top: 20px;
+}
+.footer-links a {
+  color: #ddd;
+  text-decoration: none;
+  margin: 0 15px;
+}
+.footer-links a:hover {
+  color: white;
+}
+{% endblock %}
+{% block content %}
+<div class="terms-container">
+  <h1><i class="fas fa-file-contract"></i> Terms of Service</h1>
+  <p>Last Updated: 31/3/2025</p>
+  
+  <div class="highlight">
+    <p><strong>Important:</strong> By accessing or using the FlashCards service, you agree to be bound by these Terms of Service. If you do not agree, please do not use our service.</p>
+  </div>
+  
+  <h2>1. Acceptance of Terms</h2>
+  <p>These Terms of Service ("Terms") govern your access to and use of the FlashCards website, applications, and services ("Service"). Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms.</p>
+  
+  <h2>2. Description of Service</h2>
+  <p>FlashCards provides a digital platform for creating, studying, and sharing flashcard decks. The Service includes web and mobile applications that allow users to:</p>
+  <ul>
+    <li>Create and organize digital flashcards</li>
+    <li>Study using spaced repetition algorithms</li>
+    <li>Share flashcard decks with other users</li>
+    <li>Track learning progress</li>
+  </ul>
+  
+  <h2>3. User Accounts</h2>
+  <h3>3.1 Account Creation</h3>
+  <p>To access certain features, you must register for an account. You agree to provide accurate information and keep your account secure.</p>
+  
+  <h3>3.2 Account Responsibilities</h3>
+  <p>You are responsible for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.</p>
+  
+  <h2>4. User Content</h2>
+  <h3>4.1 Your Content</h3>
+  <p>You retain ownership of any content you create or upload to the Service ("User Content"). By submitting User Content, you grant us a license to use, display, and distribute your content for the purpose of operating the Service.</p>
+  
+  <h3>4.2 Content Standards</h3>
+  <p>You agree not to upload, post, or transmit any User Content that:</p>
+  <ul>
+    <li>Violates any law or regulation</li>
+    <li>Infringes any intellectual property rights</li>
+    <li>Contains viruses or malicious code</li>
+    <li>Is defamatory, obscene, or offensive</li>
+  </ul>
+  
+  <h2>5. Prohibited Conduct</h2>
+  <p>You agree not to:</p>
+  <ul>
+    <li>Use the Service for any illegal purpose</li>
+    <li>Attempt to gain unauthorized access to our systems</li>
+    <li>Interfere with or disrupt the Service</li>
+    <li>Use automated systems to access the Service</li>
+    <li>Reverse engineer or decompile any part of the Service</li>
+  </ul>
+  
+  <h2>6. Intellectual Property</h2>
+  <p>The Service and its original content, features, and functionality are owned by FlashCards and are protected by intellectual property laws. Our trademarks may not be used without permission.</p>
+  
+  <h2>7. Payments and Subscriptions</h2>
+  <h3>7.1 Fees</h3>
+  <p>Certain features may require payment. You agree to pay all applicable fees as described when you sign up for these features.</p>
+  
+  <h3>7.2 Cancellation</h3>
+  <p>You may cancel paid subscriptions at any time, but we do not provide refunds for partial subscription periods.</p>
+  
+  <h2>8. Termination</h2>
+  <p>We may terminate or suspend your account immediately, without prior notice, for any reason, including if you breach these Terms.</p>
+  
+  <h2>9. Disclaimers</h2>
+  <p>The Service is provided "as is" without warranties of any kind. We do not guarantee that:</p>
+  <ul>
+    <li>The Service will meet your requirements</li>
+    <li>The Service will be uninterrupted or error-free</li>
+    <li>The results from using the Service will be effective or reliable</li>
+  </ul>
+  
+  <h2>10. Limitation of Liability</h2>
+  <p>To the maximum extent permitted by law, FlashCards shall not be liable for any indirect, incidental, or consequential damages resulting from your use of the Service.</p>
+  
+  <h2>11. Changes to Terms</h2>
+  <p>We reserve the right to modify these Terms at any time. We will notify you of significant changes. Continued use after changes constitutes acceptance.</p>
+  
+  <h2>12. Governing Law</h2>
+  <p>These Terms shall be governed by the laws of the State of California without regard to its conflict of law provisions.</p>
+  
+  <h2>13. Contact Information</h2>
+  <p>For questions about these Terms, please contact us at:</p>
+  <p>Email: legal@flashcards.app</p>
+  
+  <p class="last-updated">These Terms of Service were last updated on 31/3/2025.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "layout.html" %}
+
+{% block title %}Privacy Policy - FlashCards{% endblock %}
+
+{% block extra_css %}
+body {
+  background-color: #f8f8f8;
+  font-family: monospace;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+.navbar {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+.logo i {
+  margin-right: 10px;
+}
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 30px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.cta-button {
+  background: white;
+  color: #667eea !important;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s;
+  text-decoration: none !important;
+  display: inline-block;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  border: 2px solid white;
+}
+.cta-button:hover {
+  background: #667eea;
+  color: white !important;
+}
+/* Navbar CTA button specific styles (reversed) */
+.nav-links .cta-button {
+  background: transparent;
+  color: white !important;
+  border: 2px solid white;
+}
+.nav-links .cta-button:hover {
+  background: white;
+  color: #667eea !important;
+}
+.main-content {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 40px;
+}
+.privacy-container {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+h1 {
+  font-size: 36px;
+  margin-bottom: 30px;
+  color: #333;
+}
+h2 {
+  font-size: 28px;
+  margin: 30px 0 20px;
+  color: #667eea;
+}
+h3 {
+  font-size: 22px;
+  margin: 25px 0 15px;
+}
+p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+ul {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 10px;
+}
+.last-updated {
+  font-style: italic;
+  color: #888;
+  margin-top: 40px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+.footer {
+  background: #333;
+  color: #aaa;
+  padding: 40px;
+  text-align: center;
+  font-size: 14px;
+}
+.footer-links {
+  margin-top: 20px;
+}
+.footer-links a {
+  color: #ddd;
+  text-decoration: none;
+  margin: 0 15px;
+}
+.footer-links a:hover {
+  color: white;
+}
+
+{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div class="privacy-container">
+    <h1><i class="fas fa-lock"></i> Privacy Policy</h1>
+    <p>Last Updated: 31/3/2025</p>
+    
+    <p>At FlashCards, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our flashcard application and services.</p>
+    
+    <h2>1. Information We Collect</h2>
+    <p>We may collect the following types of information:</p>
+    
+    <h3>Personal Information</h3>
+    <ul>
+      <li>Name and email address when you create an account</li>
+      <li>Profile information you choose to provide</li>
+      <li>Payment information for premium services (processed securely by our payment processor)</li>
+    </ul>
+    
+    <h3>Usage Data</h3>
+    <ul>
+      <li>Study activity and progress</li>
+      <li>Device information (type, operating system, browser)</li>
+      <li>IP address and approximate location</li>
+      <li>Cookies and similar tracking technologies</li>
+    </ul>
+    
+    <h2>2. How We Use Your Information</h2>
+    <p>We use the information we collect to:</p>
+    <ul>
+      <li>Provide and maintain our service</li>
+      <li>Improve and personalize your learning experience</li>
+      <li>Develop new features and functionality</li>
+      <li>Communicate with you about your account</li>
+      <li>Analyze usage to improve our service</li>
+      <li>Prevent fraud and ensure security</li>
+    </ul>
+    
+    <h2>3. Data Sharing and Disclosure</h2>
+    <p>We do not sell your personal information. We may share information with:</p>
+    <ul>
+      <li>Service providers who assist in operating our service</li>
+      <li>Legal authorities when required by law</li>
+      <li>Other users for public profile information (if you choose to make it public)</li>
+      <li>In connection with a business transfer (merger, acquisition, etc.)</li>
+    </ul>
+    
+    <h2>4. Data Security</h2>
+    <p>We implement appropriate technical and organizational measures to protect your personal information, including:</p>
+    <ul>
+      <li>Encryption of data in transit and at rest</li>
+      <li>Regular security assessments</li>
+      <li>Access controls to personal information</li>
+    </ul>
+    
+    <h2>5. Your Rights and Choices</h2>
+    <p>You have certain rights regarding your personal information:</p>
+    <ul>
+      <li>Access and update your account information</li>
+      <li>Delete your account and associated data</li>
+      <li>Opt-out of marketing communications</li>
+      <li>Disable cookies through your browser settings</li>
+    </ul>
+    
+    <h2>6. Children's Privacy</h2>
+    <p>Our service is not intended for children under 13. We do not knowingly collect personal information from children under 13.</p>
+    
+    <h2>7. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page.</p>
+    
+    <h2>8. Contact Us</h2>
+    <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+    <p>Email: christophe@flashcards.app</p>
+    
+    <p class="last-updated">This Privacy Policy was last updated on 31/3/2025.</p>
+  </div>
+</div>
+{% endblock %}

@@ -60,7 +60,7 @@
       background-color: rgba(255, 255, 255, 0.6);
       transform: scale(1.05);
     }
-    .create-account, .forgot-password {
+    .create-account, .forgot-password, .go-home {
       margin-top: 15px;
       display: block;
       color: white;
@@ -68,7 +68,7 @@
       font-size: 16px;
       transition: color 0.3s;
     }
-    .create-account:hover, .forgot-password:hover {
+    .create-account:hover, .forgot-password:hover, .go-home:hover {
       color: rgba(255, 255, 255, 0.7);
     }
     .flash-messages {
@@ -76,6 +76,12 @@
       font-size: 18px;
       font-weight: bold;
       margin-top: 10px;
+    }
+    .links-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
   </style>
 </head>
@@ -100,8 +106,12 @@
       
       <button type="submit" class="login-button">Login</button>
     </form>
-    <a href="/create-account" class="create-account">Create an account</a>
-    <a href="/forgot-password" class="forgot-password">Forgot Password?</a>
+    
+    <div class="links-container">
+      <a href="/create-account" class="create-account">Create an account</a>
+      <a href="/forgot-password" class="forgot-password">Forgot Password?</a>
+      <a href="/" class="go-home">← Go Back to Homepage</a>
+    </div>
   </div>
 </body>
 </html>

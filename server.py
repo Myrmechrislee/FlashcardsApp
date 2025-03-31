@@ -183,7 +183,7 @@ def import_topic():
         q = db.import_topic(session["email"], title, df)
         flash(f"Successfully imported topic '{title}' with {q} questions!", "success")
     return render_template("import-menu.html")
-@app.route("/", methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
 @security.no_authentication
 def login():
     if "email" in session:
@@ -201,7 +201,7 @@ def login():
 @app.route("/signout")
 def signout():
     session.clear()
-    return redirect("/")
+    return redirect("/login")
 @app.route("/create-account", methods=["GET", "POST"])
 @security.no_authentication
 def create_account():
@@ -277,7 +277,7 @@ def verify_email():
     if db.validate_code(token_sent):
         data = {
             "title": "Thank You!",
-            "body": """Your email has been confirmed. You can now get started with the link below. Click <a href='/' class='link'>here</a> to get started. """,
+            "body": """Your email has been confirmed. You can now get started with the link below. Click <a href='/login' class='link'>here</a> to get started. """,
         }
     else:
         data = {
@@ -432,13 +432,40 @@ def before_request():
     if needs_auth:
         # Check if user is logged in
         if 'email' not in session:
-            return redirect(f'/?next={request.url}')  # Redirect to login page
+            return redirect(f'/login?next={request.url}')  # Redirect to login page
         if not db.email_is_verified(session['email']) and request.endpoint not in ["validate_email_message", "signout", "send_verification_email"]:
             return redirect('/validate-email-message')
     
     # Check admin requirement
     if request.path.startswith("/admin") and not db.get_user(session['email'])['is_admin']:
         abort(403)
+@app.route('/')
+@security.no_authentication
+def home():
+    return render_template('visitors/index.html') 
+
+@app.route('/about')
+@security.no_authentication
+def about():
+    return render_template('visitors/about.html')
+
+@app.route('/privacy')
+@security.no_authentication
+def privacy():
+    return render_template('visitors/privacy.html')
+
+@app.route('/terms')
+@security.no_authentication
+def terms():
+    return render_template('visitors/terms.html')
+
+@app.route('/contact', methods=["GET", "POST"])
+@security.no_authentication
+def contact():
+    if request.method == "POST":
+        mail.send_contact_email(request.form['subject'], f"From: {request.form['name']}\nEmail: {request.form['email']}\nMessage: {request.form['message']}")
+        flash('Thank you for your message! We will get back to you soon.', 'success')
+    return render_template('visitors/contact-us.html')
 if __name__ == '__main__':
     app.run(debug=True)
 

@@ -61,3 +61,16 @@ def send_error_email(email, app, e):
     )
     sg = SendGridAPIClient(SENDGRID_API_KEY)
     sg.send(msg)
+
+def send_contact_email(topic, text):
+    if not SENDGRID_API_KEY:
+        return
+    
+    msg = Mail(
+        from_email=SEND_EMAIL,
+        to_emails="christophelee2004@icloud.com",
+        subject=topic + " - Flash Cards Contact",
+        plain_text_content=text
+    )
+    sg = SendGridAPIClient(SENDGRID_API_KEY)
+    sg.send(msg)
