@@ -144,11 +144,11 @@
   <nav class="navbar">
     <div class="logo"><i class="fas fa-brain"></i>FlashCards</div>
     <div class="nav-links">
-      <a href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a>
+      <a href="/"><i class="fas fa-home"></i> Home</a>
       <a href="/#features"><i class="fas fa-star"></i> Features</a>
       <a href="/#how-it-works"><i class="fas fa-question-circle"></i> How It Works</a>
-      <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Log In</a>
-      <a href="{{ url_for('create_account') }}" class="cta-button"><i class="fas fa-rocket"></i> Get Started</a>
+      <a href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt"></i> Log In</a>
+      <a href="{{ url_for('auth.create_account') }}" class="cta-button"><i class="fas fa-rocket"></i> Get Started</a>
     </div>
   </nav>
 
@@ -159,10 +159,10 @@
   <footer class="footer">
     <p><i class="far fa-copyright"></i> 2025 FlashCards. All rights reserved.</p>
     <div class="footer-links">
-      <a href="{{ url_for('privacy') }}"><i class="fas fa-lock"></i> Privacy Policy</a>
-      <a href="{{ url_for('terms') }}"><i class="fas fa-file-contract"></i> Terms of Service</a>
-      <a href="{{ url_for('contact') }}"><i class="fas fa-envelope"></i> Contact Us</a>
-      <a href="{{ url_for('about') }}"><i class="fas fa-info-circle"></i> About</a>
+      <a href="{{ url_for('main.privacy') }}"><i class="fas fa-lock"></i> Privacy Policy</a>
+      <a href="{{ url_for('main.terms') }}"><i class="fas fa-file-contract"></i> Terms of Service</a>
+      <a href="{{ url_for('main.contact') }}"><i class="fas fa-envelope"></i> Contact Us</a>
+      <a href="{{ url_for('main.about') }}"><i class="fas fa-info-circle"></i> About</a>
     </div>
   </footer>
 </body>

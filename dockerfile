@@ -13,8 +13,10 @@ COPY requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-COPY pages pages
+COPY website/static website/static
 
-COPY static static
+COPY website/templates website/templates
+
+COPY website/*.py website/
 
 COPY *.py .
