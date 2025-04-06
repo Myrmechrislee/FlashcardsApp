@@ -371,3 +371,9 @@ def search_security_logs(search="", severity="all"):
         entry["severity"] = SecurityLogSeverity(entry["severity"]).name
     
     return logs_list
+
+def get_last_quiz(email, topic_id):
+    quizes = get_user(email)['quizes']
+    matches = db.quizes.find({'_id':{'$in': quizes}, 'topic_id': ObjectId(topic_id)}).to_list()
+    if matches:
+        return matches[-1]

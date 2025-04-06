@@ -30,8 +30,11 @@ def quiz(tid):
     questions = topic['questions']
     if request.args.get('randomize', default=False, type=bool):
         questions = random.sample(questions, len(questions))
-    if request.args.get('skip-confident', default=False, type=bool):
-        questions = [q for q in questions if int(q['confidence']) != 2]
+    if request.args.get('skip-correct', default=False, type=bool):
+        last = db.get_last_quiz(session['email'], tid)
+        if last:
+            wrong = [q['id'] for q in last['questions'] if not q['correct']]
+            questions = [q for q in questions if q['id'] in wrong]
     id = db.generate_quiz(session['email'], tid, questions)
 
     return redirect(f'/quizlet/{id}/{questions[0]["id"]}')

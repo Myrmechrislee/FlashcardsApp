@@ -111,6 +111,7 @@
         .quiz-options label {
             display: block;
             margin: 5px 0;
+            position: relative;
         }
 
         .separator {
@@ -141,6 +142,51 @@
             margin: 0;
             color: #555;
         }
+        .hint {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 50%;
+            background: #ddd;
+            color: #555;
+            font-size: 12px;
+            cursor: help;
+            margin-left: 5px;
+            position: relative;
+        }
+        
+        .hint:hover {
+            background: #764ba2;
+            color: white;
+        }
+
+        .hint-text {
+            display: none;
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            width: 200px;
+            font-size: 12px;
+            z-index: 10;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .hint:hover .hint-text {
+            display: block;
+        }
+
+        /* For mobile/touch devices */
+        .hint.active .hint-text {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -152,12 +198,17 @@
             <a href="/flash/{{t["_id"]}}" class="begin-btn infinite">Infinite Mode</a>
             <a href="/quiz/{{t["_id"]}}" class="begin-btn" id="begin-quiz">Quick Quiz</a>
             <div class="quiz-options">
-                <label>
-                    <input type="checkbox" id="randomize"> Randomize Questions
-                </label>
-                <label>
-                    <input type="checkbox" id="skip-confident"> Skip Confident Questions
-                </label>
+                <div class="quiz-options">
+                    <label>
+                        <input type="checkbox" id="randomize"> Randomize Questions
+                    </label>
+                    <label>
+                        <input type="checkbox" id="skip-correct"> Skip Correct
+                        <span class="hint" tabindex="0">ⓘ
+                            <span class="hint-text">Skip questions you got correct last time</span>
+                        </span>
+                    </label>
+                </div>
             </div>
             <div class="separator"></div>
             <a href="/edit-topic/{{t["_id"]}}" class="edit-link">Edit</a>
@@ -178,8 +229,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const randomizeCheckbox = document.getElementById('randomize');
-            const skipConfidentCheckbox = document.getElementById('skip-confident');
+            const skipCorrectCheckbox = document.getElementById('skip-correct');
             const beginQuizBtn = document.getElementById('begin-quiz');
+            const hintElements = document.querySelectorAll('.hint');
 
             beginQuizBtn.addEventListener('click', function(event) {
                 let url = '/quiz/{{t["_id"]}}';
@@ -188,8 +240,8 @@
                 if (randomizeCheckbox.checked) {
                     params.push('randomize=true');
                 }
-                if (skipConfidentCheckbox.checked) {
-                    params.push('skip-confident=true');
+                if (skipCorrectCheckbox.checked) {
+                    params.push('skip-correct=true');
                 }
 
                 if (params.length > 0) {
@@ -197,6 +249,20 @@
                 }
 
                 beginQuizBtn.href = url;
+            });
+
+            // Add click/touch support for hint tooltips
+            hintElements.forEach(hint => {
+                hint.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+
+                // Close tooltip when clicking elsewhere
+                document.addEventListener('click', function(event) {
+                    if (!event.target.closest('.hint')) {
+                        hintElements.forEach(h => h.classList.remove('active'));
+                    }
+                });
             });
         });
     </script>
