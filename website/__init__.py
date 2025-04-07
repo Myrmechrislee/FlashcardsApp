@@ -3,9 +3,16 @@ import db
 
 def create_app():
     app = Flask(__name__, static_folder="static", static_url_path="")
-
+    @app.after_request
+    def add_cache_headers(response):
+        if request.path.endswith(('.png', '.jpg', '.jpeg')):
+            # Cache for 1 week (604800 seconds)
+            response.cache_control.max_age = 604800
+            response.cache_control.no_cache = False
+            response.add_etag()
+        return response
     @app.before_request
-    def before_request():
+    def authentication():
         # Skip authentication check for static files
         if request.endpoint == 'static':
             return

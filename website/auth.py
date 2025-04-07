@@ -133,4 +133,8 @@ def edit_profile():
 @bp.route("/uploads/<file_id>")
 def uploads(file_id):
     file = db.get_upload(file_id)
-    return send_file(io.BytesIO(file.read()), mimetype=file.content_type)
+    rsp = send_file(io.BytesIO(file.read()), mimetype=file.content_type)
+    rsp.cache_control.max_age = 604800
+    rsp.cache_control.no_cache = False
+    return rsp
+    
