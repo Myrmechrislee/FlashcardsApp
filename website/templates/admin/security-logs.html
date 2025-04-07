@@ -401,7 +401,7 @@
             content.innerHTML = 'Loading... <span class="loading-spinner"></span>';
             
             // Make API call to ip-api.com
-            const response = await fetch(`http://ip-api.com/json/${ipAddress}`);
+            const response = await fetch(`/admin/ip-lookup/${ipAddress}`);
             const data = await response.json();
             
             if (data.status === 'success') {

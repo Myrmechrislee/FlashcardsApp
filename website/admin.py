@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, abort, redirect, session, flash
-import db
+import db, requests
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -76,3 +76,14 @@ def security_logs():
                         logs=logs,
                         current_severity=severity_filter,
                         search_query=search_query)
+
+@bp.route('/ip-lookup/<ip>')
+def ip_lookup(ip):
+    url = f"http://ip-api.com/json/{ip}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
+        return response.json()  # Return the response as JSON
+    except requests.exceptions.RequestException as e:
+        print(f"Error making request: {e}")
+        return None
