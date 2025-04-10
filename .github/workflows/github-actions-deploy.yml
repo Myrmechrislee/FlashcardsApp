@@ -1,14 +1,50 @@
-name: Deploy Web App
+name: Python CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: "3.10"  # Set your preferred Python version
 
 jobs:
-  deploy:
+  test:
+    name: Run pytest
     runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'  # Enable dependency caching
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r src/requirements.txt
+        pip install pytest pytest-cov  # Install test dependencies
+        
+    - name: Run pytest with coverage
+      run: |
+        pytest --cov=./ --cov-report=xml tests/
+        
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage.xml
 
+  deploy:
+    needs: test  # Only run if test job succeeds
+    if: github.ref == 'refs/heads/main'  # Only deploy from main branch
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://github.com
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -22,6 +58,7 @@ jobs:
           script: |
             cd ~/Projects/FlashcardsApp && \
             git pull && \
+            cd src && \
             docker build -t flashcards-app:latest . && \
             docker stop flashcards-web-app && \
             docker rm flashcards-web-app && \

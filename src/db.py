@@ -377,3 +377,6 @@ def get_last_quiz(email, topic_id):
     matches = db.quizes.find({'_id':{'$in': quizes}, 'topic_id': ObjectId(topic_id)}).to_list()
     if matches:
         return matches[-1]
+    
+def is_admin(email):
+    return get_user(email)['is_admin']

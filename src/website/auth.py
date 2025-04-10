@@ -102,7 +102,7 @@ def reset_password():
         else:
             db.reset_password(tokens, request.form['new-password'])
             flash('Password updated. ')
-            return render_template('auth/reset-password.html')
+        return render_template('auth/reset-password.html')
 
 @bp.route("/edit-profile", methods=["GET", "POST"])
 def edit_profile():
@@ -112,18 +112,18 @@ def edit_profile():
                 file = request.files.get("profile-pic")
                 if file.filename != "":
                     db.update_profile_picture(session["email"], file)
-                email = request.form.get("email")
-                if email != session["email"]:
-                    if db.email_already_exists(email):
-                        flash("Email already exists", "error")
-                        return render_template("auth/edit-profile.html", user=db.get_user(session["email"]))
-                    if re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email) is None:
-                        flash("Invalid email address", "error")
-                        return render_template("auth/edit-profile.html", user=db.get_user(session["email"]))
-                    db.update_email(session["email"], email)
-                    session["email"] = email
-                name = request.form.get("name")
-                db.update_name(session["email"], name)
+            email = request.form.get("email")
+            if email != session["email"]:
+                if db.email_already_exists(email):
+                    flash("Email already exists", "error")
+                    return render_template("auth/edit-profile.html", user=db.get_user(session["email"]))
+                if re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email) is None:
+                    flash("Invalid email address", "error")
+                    return render_template("auth/edit-profile.html", user=db.get_user(session["email"]))
+                db.update_email(session["email"], email)
+                session["email"] = email
+            name = request.form.get("name")
+            db.update_name(session["email"], name)
         except Exception as e:
             flash("There has been a problem updating your account", "error")
         else:

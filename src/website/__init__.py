@@ -34,7 +34,7 @@ def create_app():
                 return redirect('/validate-email-message')
         
         # Check admin requirement
-        if request.path.startswith("/admin") and not db.get_user(session['email'])['is_admin']:
+        if request.path.startswith("/admin") and not db.is_admin(session['email']):
             abort(403)
 
     app.config['TEMPLATES_AUTO_RELOAD'] = True
