@@ -275,7 +275,8 @@ def test_is_admin(mock_db, mock_user):
     mock_db.users.find_one.return_value = mock_user
     assert db.is_admin("test@example.com") is True
 
-def test_update_user(mock_db, mock_user):
+@patch('db.update_profile_picture')
+def test_update_user(mock_picture, mock_db, mock_user):
     """Test updating user information."""
     mock_db.users.find_one.return_value = mock_user
     
@@ -295,6 +296,7 @@ def test_update_user(mock_db, mock_user):
     
     db.edit_user(str(mock_user["_id"]), MockRequest())
     assert mock_db.users.update_one.called
+    mock_picture.assert_called_once()
     # Should have updated password if provided
     assert "password_hash" in mock_db.users.update_one.call_args[0][1]["$set"]
 

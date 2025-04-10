@@ -53,8 +53,9 @@ def test_admin_access_denied_for_non_admins(client):
         sess['email'] = 'user@example.com'  # Regular user
     with patch('db.email_is_verified') as mock_verified:
         mock_verified.return_value = True
-        with patch('db.is_admin', return_value=False):
+        with patch('db.is_admin', return_value=False), patch('db.create_security_log') as mock_log:
             response = client.get('/admin', follow_redirects=True)
+            mock_log.assert_called_once()
             assert response.status_code == 403
 
 def test_admin_access_allowed_for_admins(client):

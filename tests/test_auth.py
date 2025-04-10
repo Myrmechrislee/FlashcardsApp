@@ -9,7 +9,12 @@ def app():
     app.config['TESTING'] = True
     
     yield app
-    
+
+@pytest.fixture(autouse=True)
+def mock_db():
+    """Fixture to mock MongoDB operations."""
+    with patch('db.db') as mock_db:
+        yield mock_db
 @pytest.fixture(autouse=True)
 def mock_email_verification():
     with patch('db.email_is_verified', return_value=True):
@@ -41,10 +46,12 @@ def test_login_post_success(test_login, client):
         assert session['email'] == 'test@example.com'
 
 def test_login_post_failure(client):
-    response = client.post('/login', data={
-        'email': 'test@example.com',
-        'password': 'wrongpassword'
-    }, follow_redirects=True)
+    with patch('db.test_login') as mock_login:
+        mock_login.return_value = (False, "")
+        response = client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'wrongpassword'
+        }, follow_redirects=True)
     assert response.status_code == 200
     assert b'Incorrect email or password.' in response.data
     with client.session_transaction() as session:

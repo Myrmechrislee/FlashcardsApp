@@ -11,6 +11,7 @@ def login():
     if request.method == "POST":
         success, user = db.test_login(request.form["email"], request.headers.get('X-Forwarded-For', request.remote_addr), request.form["password"])
         if success:
+            print("FLAG!")
             session["email"] = user["email"]
             session["name"] = user["name"]
             r = request.args.get("next", "/topics")
