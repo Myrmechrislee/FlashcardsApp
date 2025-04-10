@@ -1,7 +1,10 @@
 from flask import Blueprint, session, render_template, abort, request, redirect, jsonify, flash, Response
 import db, random, io, csv, pandas as pd
+import re
 
 bp = Blueprint('topics', __name__, url_prefix='', template_folder='website/templates/topics')
+
+OBJECT_ID_PATTERN = re.compile(r"^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)", re.IGNORECASE)
 
 @bp.route('/topics', methods=["GET", "POST"])
 def topics():
@@ -9,6 +12,8 @@ def topics():
 
 @bp.route("/flash/<tid>/<qid>")
 def flashcard(tid, qid):
+    if not OBJECT_ID_PATTERN.match(tid):
+        abort(404)
     topic = db.get_topic(tid)
     if topic == None:
         abort(404)
@@ -22,6 +27,8 @@ def flashcard(tid, qid):
 
 @bp.route("/quiz/<tid>")
 def quiz(tid):
+    if not OBJECT_ID_PATTERN.match(tid):
+        abort(404)
     topic = db.get_topic(tid)
     if topic == None:
         abort(404)
@@ -33,14 +40,18 @@ def quiz(tid):
     if request.args.get('skip-correct', default=False, type=bool):
         last = db.get_last_quiz(session['email'], tid)
         if last:
-            wrong = [q['id'] for q in last['questions'] if not q['correct']]
+            wrong = [q['id'] for q in last['questions'] if 'correct' in q and not q['correct']]
             questions = [q for q in questions if q['id'] in wrong]
     id = db.generate_quiz(session['email'], tid, questions)
-
+    if len(questions) == 0:
+        db.finish_quiz(id)
+        return redirect(f'/quiz-results/{id}')
     return redirect(f'/quizlet/{id}/{questions[0]["id"]}')
 
 @bp.route("/quizlet/<quizid>/<qid>")
 def quizlet(quizid, qid):
+    if not OBJECT_ID_PATTERN.match(quizid):
+        abort(404)
     if not db.has_access_to_quiz(session["email"], quizid):
         abort(403)
     quiz = db.get_quiz(quizid)
@@ -71,9 +82,13 @@ def answer_quizlet(quizid, qid):
 
 @bp.route("/quiz-results/<quizid>")
 def quiz_results(quizid):
+    if not OBJECT_ID_PATTERN.match(quizid):
+        abort(404)
     return render_template('topics/quiz-results.html', **db.get_quiz_stats(quizid))
 @bp.route("/flash/<tid>")
 def flash_card_infinite(tid):
+    if not OBJECT_ID_PATTERN.match(tid):
+        abort(404)
     topic = db.get_topic(tid)
     if topic == None:
         abort(404)
@@ -107,6 +122,8 @@ def add_topic():
 
 @bp.route("/topic-start/<id>")
 def topic_start(id):
+    if not OBJECT_ID_PATTERN.match(id):
+        abort(404)
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
@@ -116,6 +133,8 @@ def topic_start(id):
 
 @bp.route('/edit-topic/<id>', methods=['GET', 'POST'])
 def edit_topic(id):
+    if not OBJECT_ID_PATTERN.match(id):
+        abort(404)
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
@@ -137,6 +156,8 @@ def edit_topic(id):
 
 @bp.route("/delete-topic/<id>")
 def delete_topic(id):
+    if not OBJECT_ID_PATTERN.match(id):
+        abort(404)
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
@@ -147,6 +168,8 @@ def delete_topic(id):
 
 @bp.route("/export-csv/<id>")
 def export_csv(id):
+    if not OBJECT_ID_PATTERN.match(id):
+        abort(404)
     topic = db.get_topic(id)
     if topic == None:
         abort(404)

@@ -3,6 +3,7 @@ from flask import Flask, session, url_for
 from unittest.mock import patch, MagicMock
 import pandas as pd
 from io import BytesIO
+from bson import ObjectId
 
 @pytest.fixture
 def app():
@@ -48,7 +49,7 @@ def test_flashcard_route(auth_session):
     
     with patch('db.get_topic', return_value=mock_topic), \
          patch('db.has_access_to_topic', return_value=True):
-        response = auth_session.get('/flash/1/1')
+        response = auth_session.get(f'/flash/{ObjectId()}/1')
         assert response.status_code == 200
         assert b'Q1' in response.data
 
@@ -63,7 +64,7 @@ def test_quiz_route(auth_session):
          patch('db.has_access_to_topic', return_value=True), \
          patch('db.generate_quiz', return_value='quiz123'), \
          patch('db.get_last_quiz', return_value=None):
-        response = auth_session.get('/quiz/1')
+        response = auth_session.get(f'/quiz/{ObjectId()}')
         assert response.status_code == 302  # Redirect to quizlet
 
 def test_quizlet_route(auth_session):
@@ -77,7 +78,7 @@ def test_quizlet_route(auth_session):
          patch('db.get_quiz', return_value=mock_quiz), \
          patch('db.get_topic', return_value=mock_topic), \
          patch('db.get_streak', return_value=0):
-        response = auth_session.get('/quizlet/quiz123/1')
+        response = auth_session.get(f'/quizlet/{ObjectId()}/1')
         assert response.status_code == 200
         assert b'Q1' in response.data
 
@@ -86,13 +87,13 @@ def test_answer_quizlet_valid(auth_session):
          patch('db.update_quiz_response') as mock_update, \
          patch('db.finish_quiz'):
         mock_update.return_value = {'id': 2}
-        response = auth_session.get('/answer-quizlet/quiz123/1?response=yes')
+        response = auth_session.get(f'/answer-quizlet/{ObjectId()}/1?response=yes')
         assert response.status_code == 302  # Redirect to next question
 
 @patch('db.has_access_to_quiz')
 def test_answer_quizlet_invalid(mock_has_access, auth_session):
     mock_has_access.return_value = True
-    response = auth_session.get('/answer-quizlet/67f73c52dc9057559c189519/1?response=maybe')
+    response = auth_session.get(f'/answer-quizlet/{ObjectId()}/1?response=maybe')
     assert response.status_code == 400
 
 def test_add_topic_get(auth_session):
@@ -118,7 +119,7 @@ def test_edit_topic_get(auth_session):
     
     with patch('db.get_topic', return_value=mock_topic), \
          patch('db.has_access_to_topic', return_value=True):
-        response = auth_session.get('/edit-topic/1')
+        response = auth_session.get(f'/edit-topic/{ObjectId()}')
         assert response.status_code == 200
         assert b'Edit Topic' in response.data
 
@@ -128,7 +129,7 @@ def test_delete_topic(auth_session):
     with patch('db.get_topic', return_value=mock_topic), \
          patch('db.has_access_to_topic', return_value=True), \
          patch('db.delete_topic'):
-        response = auth_session.get('/delete-topic/1')
+        response = auth_session.get(f'/delete-topic/{ObjectId()}')
         assert response.status_code == 302  # Redirect to topics
 
 def test_export_csv(auth_session):
@@ -140,7 +141,7 @@ def test_export_csv(auth_session):
     
     with patch('db.get_topic', return_value=mock_topic), \
          patch('db.has_access_to_topic', return_value=True):
-        response = auth_session.get('/export-csv/1')
+        response = auth_session.get(f'/export-csv/{ObjectId()}')
         assert response.status_code == 200
         assert response.mimetype == 'text/csv'
         content = response.data.decode('utf-8')
@@ -176,5 +177,29 @@ def test_flash_card_infinite(auth_session):
     
     with patch('db.get_topic', return_value=mock_topic), \
          patch('db.has_access_to_topic', return_value=True):
-        response = auth_session.get('/flash/1')
+        response = auth_session.get(f'/flash/{ObjectId()}')
         assert response.status_code == 302  # Redirect to random question
+
+@pytest.mark.parametrize("url,expected", [
+            ('/flash/123/invalid_qid', 404),
+            ('/quiz/not_a_valid_id', 404),
+            ('/quizlet/invalid_quizid/invalid_qid', 404),  # 403 because has_access_to_quiz fails first
+            ('/quiz-results/123', 404),
+            ('/flash/short_id', 404),
+            ('/topic-start/not24chars', 404),
+            ('/edit-topic/12345678901234567890123x', 404),  # 23 chars + 'x'
+            ('/delete-topic/nothex', 404),
+            ('/export-csv/123', 404),
+        ])
+def test_invalid_object_ids(client, url, expected):
+    with client.session_transaction() as sess:
+        sess['email'] = 'test@example.com'
+    # Mock session and database functions
+    with patch('db.get_user') as mock_user, patch('db.get_topics') as mock_topics, patch('db.has_access_to_topic') as mock_access:
+        # Set up mock responses
+        mock_user.return_value = {'is_admin': False}
+        mock_topics.return_value = []
+        mock_access.return_value = True
+        
+        response = client.get(url)
+        assert response.status_code == expected, f"Route {url} did not return {expected} for invalid ID"

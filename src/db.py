@@ -192,7 +192,7 @@ def get_quiz_stats(quizid):
         'time_taken': format_timedelta(quiz['time-end'] - quiz['time-start']),
         'total_questions': total_questions,
         'correct_answers': correct,
-        'accuracy': correct / float(total_questions) * 100
+        'accuracy': correct / float(total_questions) * 100 if total_questions else 0
     }
 
 def format_timedelta(td):
