@@ -61,7 +61,15 @@ def quizlet(quizid, qid):
     question = [q for q in questions if str(q['id']) == qid]
     if len(question) == 0:
         abort(404)
-    return render_template("topics//quizlet.html", t=db.get_topic(quiz["topic_id"]), quizid=quizid, qid=qid, question=question[0], streak=db.get_streak(quizid))
+    return render_template("topics//quizlet.html",
+                           t=db.get_topic(quiz["topic_id"]),
+                           quizid=quizid,
+                           qid=qid,
+                           question=question[0],
+                           streak=db.get_streak(quizid),
+                           question_number=qid,
+                           total_questions=len(questions)
+                           )
 
 @bp.route("/answer-quizlet/<quizid>/<qid>")
 def answer_quizlet(quizid, qid):

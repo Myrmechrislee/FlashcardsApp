@@ -210,10 +210,22 @@
                 opacity: 1;
             }
         }
+        /* Question counter styles */
+        .question-counter {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #5a67d8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
     </style>
 </head>
 <body>
     <a href="/topic-start/{{t['_id']}}" class="back-button">Go Back</a>
+    <div class="question-counter">{{question_number}}/{{total_questions}}</div>
     {% if streak > 0 %}
     <div class="streak-icon 
         {% if streak < 3 %}streak-grey
