@@ -216,16 +216,37 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
-            color: #5a67d8;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            min-width: 100px;
+            text-align: center;
+        }
+        /* Stopwatch styles */
+        .stopwatch {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 22px;
+            font-weight: bold;
+            color: black;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
     <a href="/topic-start/{{t['_id']}}" class="back-button">Go Back</a>
     <div class="question-counter">{{question_number}}/{{total_questions}}</div>
+    <div class="stopwatch" id="stopwatch">00:00:00</div>
     {% if streak > 0 %}
     <div class="streak-icon 
         {% if streak < 3 %}streak-grey
@@ -258,9 +279,34 @@
                 }
             });
         }
-        window.onload = () => {
-            adjustFontSize()
+        
+        // Stopwatch functionality
+        const startTime = new Date("{{timeStarted}}").getTime();
+        function updateStopwatch() {
+            const now = new Date().getTime();
+            const elapsed = now - startTime;
+            
+            // Calculate hours, minutes, seconds
+            const hours = Math.floor(elapsed / (1000 * 60 * 60));
+            const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+            
+            // Format with leading zeros
+            const formattedTime = 
+                String(hours).padStart(2, '0') + ':' + 
+                String(minutes).padStart(2, '0') + ':' + 
+                String(seconds).padStart(2, '0');
+            
+            document.getElementById('stopwatch').textContent = formattedTime;
         }
+        
+        window.onload = () => {
+            adjustFontSize();
+            // Update stopwatch every second
+            updateStopwatch();
+            setInterval(updateStopwatch, 200);
+        }
+        
         let flipped = false;
         function flipCard() {
             const card = document.getElementById('flashcard');

@@ -68,7 +68,8 @@ def quizlet(quizid, qid):
                            question=question[0],
                            streak=db.get_streak(quizid),
                            question_number=qid,
-                           total_questions=len(questions)
+                           total_questions=len(questions),
+                           timeStarted=quiz['time-start']
                            )
 
 @bp.route("/answer-quizlet/<quizid>/<qid>")

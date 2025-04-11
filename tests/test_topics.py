@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 import pandas as pd
 from io import BytesIO
 from bson import ObjectId
+from datetime import datetime
 
 @pytest.fixture
 def app():
@@ -70,7 +71,8 @@ def test_quiz_route(auth_session):
 def test_quizlet_route(auth_session):
     mock_quiz = {
         'topic_id': 1,
-        'questions': [{'id': 1, 'question': 'Q1', 'answer': 'A1'}]
+        'questions': [{'id': 1, 'question': 'Q1', 'answer': 'A1'}],
+        'time-start': datetime.now()
     }
     mock_topic = {'id': 1, 'title': 'Test Topic'}
     
