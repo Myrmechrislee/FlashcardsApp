@@ -241,6 +241,22 @@
             font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+        /* Progress bar styles */
+        .progress-container {
+            width: 80%;
+            max-width: 500px;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -259,6 +275,12 @@
     </div>
     {% endif %}
     <h1>{{t["title"]}}</h1>
+    
+    <!-- Progress bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar" style="width: {{ (question_number / total_questions) * 100 }}%"></div>
+    </div>
+    
     <div class="card" id="flashcard" onclick="flipCard()">
         <div class="front" id="front-text">{{question["question"]}}</div>
         <div class="back" id="back-text">{{question["answer"]}}</div>
@@ -281,7 +303,7 @@
         }
         
         // Stopwatch functionality
-        const startTime = new Date("{{timeStarted}}").getTime();
+        const startTime = new Date("{{timeStarted}} UTC").getTime();
         function updateStopwatch() {
             const now = new Date().getTime();
             const elapsed = now - startTime;

@@ -62,15 +62,16 @@ def quizlet(quizid, qid):
         abort(404)
     questions = quiz['questions']
     question = [q for q in questions if str(q['id']) == qid]
+    quizindex = [i for i, q in enumerate(questions) if str(q['id']) == qid][0]
     if len(question) == 0:
         abort(404)
-    return render_template("topics//quizlet.html",
+    return render_template("topics/quizlet.html",
                            t=db.get_topic(quiz["topic_id"]),
                            quizid=quizid,
                            qid=qid,
                            question=question[0],
                            streak=db.get_streak(quizid),
-                           question_number=qid,
+                           question_number=quizindex,
                            total_questions=len(questions),
                            timeStarted=quiz['time-start']
                            )

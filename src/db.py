@@ -164,7 +164,7 @@ def generate_quiz(email, tid, questions):
     id = db.quizes.insert_one({
         'topic_id': ObjectId(tid),
         'questions': questions,
-        'time-start': datetime.now(),
+        'time-start': datetime.utcnow(),
         'expiresAt': datetime.utcnow() + timedelta(days=1)
     }).inserted_id
     db.users.update_one({'email': email}, {'$push': {'quizes': id}})
