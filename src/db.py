@@ -173,8 +173,18 @@ def generate_quiz(email, tid, questions):
 def get_quiz(quizid):
     return db.quizes.find_one({'_id': ObjectId(quizid)})
 
-def update_quiz_response(quizid, questionid, is_correct):
+def update_quiz_response(email, quizid, questionid, is_correct):
     db.quizes.update_one({'_id': ObjectId(quizid), "questions.id": int(questionid)}, {"$set": {'questions.$.correct': is_correct}})
+    db.quizes_log.insert_one({
+        "event": "answered quizlet",
+        "timestamp": datetime.now(),
+        "user_id": get_user(email)['_id'],
+        "data": {
+            "quizid": quizid,
+            "questionid": questionid,
+            "correct": is_correct
+        }
+    })
     remaining = [q for q in get_quiz(quizid)['questions'] if 'correct' not in q.keys()]
     if len(remaining) > 0:
         return remaining[0]
@@ -380,3 +390,48 @@ def get_last_quiz(email, topic_id):
     
 def is_admin(email):
     return get_user(email)['is_admin']
+
+def get_topic_stats(tid):
+    quiz_ids = [str(q['_id']) for q in db.quizes.find({'topic_id': ObjectId(tid)}, {'_id': 1}).to_list()]
+
+    return db.quizes_log.aggregate([
+        {
+            "$match": {
+                "event": "answered quizlet",
+                "data.quizid": {"$in": quiz_ids}
+            }
+        },
+        {
+            '$sort': {
+                'timestamp': 1
+            }
+        },
+        {
+            '$group': {
+                '_id': {"qid": "$data.questionid"},
+                'totalAttempts': { '$sum': 1 },
+                'correctCount': {
+                    '$sum': {
+                        '$cond': [{ '$eq': ["$data.correct", True] }, 1, 0]
+                    }
+                },
+                'wrongCount': {
+                    '$sum': {
+                        '$cond': [{ '$eq': ["$data.correct", False] }, 1, 0]
+                    }
+                },
+                'lastAttempt': { '$last': "$timestamp" }
+            }
+        },
+        {
+            "$project": {
+                'quizid': '$_id.quizid',
+                'qid': '$_id.qid',
+                'totalAttempts': 1,
+                'correctCount': 1,
+                'wrongCount': 1,
+                'lastAttempt': 1,
+                '_id': 0
+            }
+        }
+    ]).to_list()

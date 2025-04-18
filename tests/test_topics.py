@@ -194,9 +194,6 @@ def test_flash_card_infinite(auth_session):
             ('/export-csv/123', 404),
         ])
 def test_invalid_object_ids(client, url, expected):
-    with client.session_transaction() as sess:
-        sess['email'] = 'test@example.com'
-    # Mock session and database functions
     with patch('db.get_user') as mock_user, patch('db.get_topics') as mock_topics, patch('db.has_access_to_topic') as mock_access:
         # Set up mock responses
         mock_user.return_value = {'is_admin': False}
@@ -205,3 +202,41 @@ def test_invalid_object_ids(client, url, expected):
         
         response = client.get(url)
         assert response.status_code == expected, f"Route {url} did not return {expected} for invalid ID"
+
+@pytest.mark.parametrize("user_response,expected_status", [
+    ("yes", 302),
+    ("no", 302),
+    ("invalid", 400) 
+])
+def test_quizlet_response(user_response, expected_status, client):
+    quizid = ObjectId()
+    questionid = 2
+    params = {'response': user_response}
+
+    mockQuiz = {
+        'questions': [
+            {
+                'id': 1,
+                'correct': True
+            },
+            {
+                'id': 2,
+                'question': "Q2",
+                "correct": user_response == "yes"
+            },
+            {
+                'id': 3
+            }
+        ]
+    }
+    with patch('db.has_access_to_quiz', return_value=True), \
+            patch('db.db') as mock_db, \
+            patch('db.get_quiz', return_value=mockQuiz), \
+            patch('db.get_user', return_value={'_id': ObjectId()}):
+        response = client.get(f'/answer-quizlet/{quizid}/{questionid}', query_string=params)
+        assert response.status_code == expected_status
+        if expected_status == 302:
+            assert f'/quizlet/{quizid}/3'.encode() in response.data
+            mock_db.quizes.update_one.assert_called_once()
+            mock_db.quizes_log.insert_one.assert_called_once()
+        

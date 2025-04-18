@@ -8,7 +8,10 @@ OBJECT_ID_PATTERN = re.compile(r"^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)", re.IGNOR
 
 @bp.route('/topics', methods=["GET", "POST"])
 def topics():
-    return render_template("topics/topics.html", user=db.get_user(session["email"]), topics=db.get_topics(session["email"]), is_admin=db.get_user(session['email'])['is_admin'])
+    return render_template("topics/topics.html",
+                           user=db.get_user(session["email"]),
+                           topics=db.get_topics(session["email"]),
+                           is_admin=db.get_user(session['email'])['is_admin'])
 
 @bp.route("/flash/<tid>/<qid>")
 def flashcard(tid, qid):
@@ -83,7 +86,7 @@ def answer_quizlet(quizid, qid):
             'message': 'The response is not yes or no.'
         }), 400
     response = response.lower()
-    next = db.update_quiz_response(quizid, qid, response == "yes")
+    next = db.update_quiz_response(session["email"], quizid, qid, response == "yes")
     if next:
         return redirect(f"/quizlet/{quizid}/{next['id']}")
     db.finish_quiz(quizid)
@@ -138,7 +141,8 @@ def topic_start(id):
         abort(404)
     if not db.has_access_to_topic(session["email"], id):
         abort(403)
-    return render_template("topics/topic-start.html", t=topic)
+    return render_template("topics/topic-start.html", t=topic,
+                           topic_stats=db.get_topic_stats(id))
 
 @bp.route('/edit-topic/<id>', methods=['GET', 'POST'])
 def edit_topic(id):
