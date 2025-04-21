@@ -110,17 +110,7 @@ def flash_card_infinite(tid):
     topic = db.get_topic(tid)
     question = random.choice(topic["questions"])
     return redirect(f"/flash/{tid}/{question['id']}")
-    
 
-@bp.route("/submitconfidence", methods=["POST"])
-def submit_confidence():
-    data = request.get_json()
-    if 'confidence' in data and 'qid' in data and 'tid' in data:
-        m = db.update_confidence(data["tid"], data["qid"], data["confidence"])
-        return jsonify({"message": "success"})
-    else:
-        message = jsonify({"error": "Missing 'qid', 'tid' or 'confidence' property"})
-        return message, 400
 @bp.route("/add-topic", methods=["GET", "POST"])
 def add_topic():
     if request.method == "POST":
@@ -140,10 +130,12 @@ def topic_start(id):
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
+    if 'participants' in topic:
+        topic['participants'] = [db.get_user_by_id(p)['email'] for p in topic['participants']]
     if not db.has_access_to_topic(session["email"], id):
         abort(403)
     return render_template("topics/topic-start.html", t=topic,
-                           topic_stats=db.get_topic_stats(id))
+                           topic_stats=db.get_topic_stats(id, session['email']), is_owner=db.is_owner(session['email'], id))
 
 @bp.route('/edit-topic/<id>', methods=['GET', 'POST'])
 def edit_topic(id):
@@ -152,7 +144,7 @@ def edit_topic(id):
     topic = db.get_topic(id)
     if topic == None:
         abort(404)
-    if not db.has_access_to_topic(session["email"], id):
+    if not db.is_owner(session["email"], id):
         abort(403)
     
     if request.method == 'POST':
@@ -192,9 +184,9 @@ def export_csv(id):
     questions = topic["questions"]
     out = io.StringIO()
     w = csv.writer(out)
-    w.writerow(["id", "question", "answer", "confidence"])
+    w.writerow(["id", "question", "answer"])
     for q in questions:
-        w.writerow([q["id"], q["question"], q["answer"], q["confidence"]])
+        w.writerow([q["id"], q["question"], q["answer"]])
     out.seek(0)
     return Response(out, mimetype="text/csv", headers={
         "Content-Disposition": f"attachment;filename={topic['title']}.csv"
@@ -219,3 +211,58 @@ def import_topic():
         q = db.import_topic(session["email"], title, df)
         flash(f"Successfully imported topic '{title}' with {q} questions!", "success")
     return render_template("topics/import-menu.html")
+
+@bp.route("/update-topic-visibility/<tid>", methods=["POST"])
+def update_topic_visability(tid):
+    state = request.get_json().get('visibility')
+    if not db.is_owner(session['email'], tid):
+        return jsonify({"success": False, "error": "You don't have ownership of topic. "}), 403
+    if state not in ['private', 'restricted', 'public']:
+        return jsonify({"success": False, "error": "Invalid visibility value"}), 400
+    res = db.update_topic_visability(tid, state)
+    if res.modified_count == 0:
+        return jsonify({"success": False, "error": "No changes made"}), 400
+    else:
+        return jsonify({
+                "success": True,
+                "message": f"Visibility updated to {state}",
+                "new_visibility": state
+            })
+    
+@bp.route("/add-topic-participant/<tid>", methods=["POST"])
+def add_topic_participant(tid):
+    if not db.is_owner(session['email'], tid):
+        return jsonify({"success": False, "error": "You don't have ownership of topic. "}), 403
+    participant_email = request.get_json().get('email')
+    if not participant_email:
+            return jsonify({"success": False, "error": "Email is required"}), 400
+    if not db.email_already_exists(participant_email):
+        return jsonify({"success": False, "error": "User not found"}), 400
+    participant = db.get_user(participant_email)
+    if participant['_id'] in db.get_participants(tid):
+        return jsonify({"success": False, "error": "User is already a participant"}), 400
+    db.add_participant(tid, participant['_id'])
+    return jsonify({
+            "success": True,
+            "message": f"Added {participant_email} to topic",
+            "participant": {
+                "id": str(participant['_id']),
+                "email": participant_email,
+                "name": participant.get('name', '')
+            }
+        })
+
+
+
+@bp.route('/remove-topic-participant/<topic_id>', methods=['POST'])
+def remove_participant(topic_id):
+    participant_email = request.get_json().get('email')
+    if not db.is_owner(session['email'], topic_id):
+        return jsonify({"success": False, "error": "Not owner. "}), 405
+    if not db.email_already_exists(participant_email):
+        return jsonify({"success": False, "error": "User not found"}), 400
+    user = db.get_user(participant_email)
+
+    db.remove_participant(topic_id, user['_id'])
+
+    return jsonify({"success": True})

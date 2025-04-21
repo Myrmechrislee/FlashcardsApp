@@ -120,7 +120,7 @@ def test_edit_topic_get(auth_session):
     }
     
     with patch('db.get_topic', return_value=mock_topic), \
-         patch('db.has_access_to_topic', return_value=True):
+         patch('db.is_owner', return_value=True):
         response = auth_session.get(f'/edit-topic/{ObjectId()}')
         assert response.status_code == 200
         assert b'Edit Topic' in response.data
@@ -138,7 +138,7 @@ def test_export_csv(auth_session):
     mock_topic = {
         'id': 1,
         'title': 'Test Topic',
-        'questions': [{'id': 1, 'question': 'Q1', 'answer': 'A1', 'confidence': 50}]
+        'questions': [{'id': 1, 'question': 'Q1', 'answer': 'A1', 'random': 'not important'}]
     }
     
     with patch('db.get_topic', return_value=mock_topic), \
@@ -147,7 +147,7 @@ def test_export_csv(auth_session):
         assert response.status_code == 200
         assert response.mimetype == 'text/csv'
         content = response.data.decode('utf-8')
-        assert 'Q1,A1,50' in content
+        assert 'Q1,A1' in content
 
 def test_import_topic_post(auth_session):
     test_file = BytesIO(b"question,answer\r\nQ1,A1\r\n")
@@ -159,16 +159,6 @@ def test_import_topic_post(auth_session):
             'file': (test_file, test_file.filename)
         }, content_type='multipart/form-data')
         assert response.status_code == 200
-
-def test_submit_confidence(auth_session):
-    with patch('db.update_confidence', return_value=True):
-        response = auth_session.post('/submitconfidence', json={
-            'tid': '1',
-            'qid': '1',
-            'confidence': 75
-        })
-        assert response.status_code == 200
-        assert b'success' in response.data
 
 def test_flash_card_infinite(auth_session):
     mock_topic = {

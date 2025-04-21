@@ -132,10 +132,6 @@
     </div>
     <div class="survey" id="survey">
         <button class="next-button" onclick="nextQuestion()">Next Question</button>
-        <p>How did it go?</p>
-        <button onclick="submitResponse(0)">Didn't remember</button>
-        <button onclick="submitResponse(1)">Sort of know it</button>
-        <button onclick="submitResponse(2)">Understood</button>
     </div>
     <script>
         window.tid = "{{t['_id']}}"
@@ -169,25 +165,6 @@
                 survey.style.display = 'none';
             }
             flipped = !flipped;
-        }
-    
-        function submitResponse(response) {
-            fetch('/submitconfidence', {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({tid: window.tid, qid: window.qid, confidence: response })
-            })
-            .then(res => {
-                if (res.ok) {
-                window.location.href = "/flash/{{t['_id']}}"
-                } else {
-                return res.json();
-                }
-            })
-            .then(data => console.log(data))
-            .catch(err => console.error(err));
         }
     </script>
 </body>

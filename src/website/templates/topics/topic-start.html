@@ -310,12 +310,121 @@
             right: 10px;
             transform: none;
         }
+        .visibility-control {
+            margin: 15px 0;
+            font-size: 14px;
+            color: #555;
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .visibility-select {
+            margin-top: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-family: monospace;
+            font-size: 13px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 14px;
+        }
+        
+        .visibility-select:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 2px rgba(118, 75, 162, 0.2);
+        }
+        
+        .visibility-control label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .visibility-control option {
+            padding: 8px;
+        }
+        .participants-container {
+            width: 80%;
+            margin-top: 15px;
+            display: none; /* Hidden by default */
+        }
+        
+        .participants-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .participants-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            background: white;
+        }
+        
+        .participant-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .participant-item:last-child {
+            border-bottom: none;
+        }
+        
+        .remove-participant {
+            color: #dc3545;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 14px;
+        }
+        
+        .add-participant-form {
+            display: flex;
+            margin-top: 10px;
+        }
+        
+        .add-participant-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        
+        .add-participant-btn {
+            padding: 8px 12px;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        
+        .add-participant-btn:hover {
+            background: #667eea;
+        }
     </style>
 </head>
 <body>
     <a href="/topics" class="go-back"><i class="fas fa-arrow-left"></i> Go Back</a>
     <div class="container">
-        <!-- Left Panel -->
         <div class="left-panel">
             <h1><i class="fas fa-book-open"></i> {{t["title"]}}</h1>
             <a href="/flash/{{t["_id"]}}" class="begin-btn infinite"><i class="fas fa-infinity"></i> Infinite Mode</a>
@@ -334,7 +443,54 @@
                 </div>
             </div>
             <div class="separator"></div>
+            <div class="visibility-control">
+                <label for="visibility"><i class="fas fa-eye"></i> Visibility:
+                    <span class="hint" tabindex="0"><i class="fas fa-info-circle"></i>
+                        <span class="hint-text">
+                            <strong>Private:</strong> Only you can see this topic<br>
+                            <strong>Restricted:</strong> You choose who can access<br>
+                            <strong>Public:</strong> Anyone with the link can view
+                        </span>
+                    </span>
+                </label>
+                {% if is_owner %}
+                    <select id="visibility" class="visibility-select">
+                        <option value="private" {% if t.get('visability_state', 'private') == 'private' %}selected{% endif %}>
+                            <i class="fas fa-lock"></i> Private (only me)
+                        </option>
+                        <option value="restricted" {% if t.get('visability_state', 'private') == 'restricted' %}selected{% endif %}>
+                            <i class="fas fa-user-friends"></i> Restricted (selected users)
+                        </option>
+                        <option value="public" {% if t.get('visability_state', 'private') == 'public' %}selected{% endif %}>
+                            <i class="fas fa-globe"></i> Public (everyone)
+                        </option>
+                    </select>
+                {% else %}
+                    {{t.get('visability_state', 'private')}}
+                {% endif %}
+            </div>
+            <div class="participants-container" id="participants-container">
+                <div class="participants-header">
+                    <span><i class="fas fa-users"></i> Participants</span>
+                </div>
+                <div class="participants-list" id="participants-list">
+                    {% for participant in t.get('participants', []) %}
+                        <div class="participant-item" data-email="{{ participant }}">
+                            <span>{{ participant }}</span>
+                            <button class="remove-participant" data-email="{{ participant }}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="add-participant-form">
+                    <input type="email" class="add-participant-input" id="add-participant-input" placeholder="Enter email address">
+                    <button class="add-participant-btn" id="add-participant-btn">Add</button>
+                </div>
+            </div>
+            {% if is_owner %}
             <a href="/edit-topic/{{t["_id"]}}" class="edit-link"><i class="fas fa-edit"></i> Edit</a>
+            {% endif %}
             <a href="/export-csv/{{t["_id"]}}" class="export-btn"><i class="fas fa-file-export"></i> Export as CSV</a>
         </div>
 
@@ -420,7 +576,146 @@
                     }
                 });
             });
+        // Add this to the existing script section
+        const visibilitySelect = document.getElementById('visibility');
+        const participantsContainer = document.getElementById('participants-container');
+        
+        // Function to toggle participants container visibility
+        function toggleParticipantsContainer() {
+            if (visibilitySelect.value === 'restricted') {
+                participantsContainer.style.display = 'block';
+            } else {
+                participantsContainer.style.display = 'none';
+            }
+        }
+        
+        // Initial check
+        toggleParticipantsContainer();
+        
+        // Event listener for visibility change
+        visibilitySelect.addEventListener('change', function() {
+            toggleParticipantsContainer();
+            
+            fetch('/update-topic-visibility/{{t["_id"]}}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    visibility: this.value || "private"
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Visibility updated');
+                } else {
+                    console.error('Failed to update visibility');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
+        
+        // Add participant functionality
+        const addParticipantBtn = document.getElementById('add-participant-btn');
+        const addParticipantInput = document.getElementById('add-participant-input');
+        const participantsList = document.getElementById('participants-list');
+        
+        addParticipantBtn.addEventListener('click', function() {
+            const email = addParticipantInput.value.trim();
+            if (email && validateEmail(email)) {
+                fetch('/add-topic-participant/{{t["_id"]}}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Add the participant to the UI
+                        const participantItem = document.createElement('div');
+                        participantItem.className = 'participant-item';
+                        participantItem.dataset.email = email;
+                        participantItem.innerHTML = `
+                            <span>${email}</span>
+                            <button class="remove-participant" data-email="${email}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        participantsList.appendChild(participantItem);
+                        addParticipantInput.value = '';
+                        
+                        // Add event listener to the new remove button
+                        participantItem.querySelector('.remove-participant').addEventListener('click', removeParticipant);
+                    } else {
+                        alert('Failed to add participant: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding participant');
+                });
+            } else {
+                alert('Please enter a valid email address');
+            }
+        });
+        
+        // Remove participant functionality
+        function removeParticipant(event) {
+            const email = event.currentTarget.dataset.email;
+            if (confirm(`Are you sure you want to remove ${email}?`)) {
+                fetch('/remove-topic-participant/{{t["_id"]}}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the participant from the UI
+                        const participantItem = document.querySelector(`.participant-item[data-email="${email}"]`);
+                        if (participantItem) {
+                            participantItem.remove();
+                        }
+                    } else {
+                        alert('Failed to remove participant: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while removing participant');
+                });
+            }
+        }
+        
+        // Add event listeners to existing remove buttons
+        document.querySelectorAll('.remove-participant').forEach(btn => {
+            btn.addEventListener('click', removeParticipant);
+        });
+        
+        // Simple email validation
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        // Allow adding participant by pressing Enter
+        addParticipantInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addParticipantBtn.click();
+            }
+        });
+    });
     </script>
 </body>
 </html>

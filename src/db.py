@@ -24,22 +24,12 @@ def get_user(email):
 
 def get_upload(file_id):
     return fs.get(ObjectId(file_id))
-def update_confidence(tid, qid, c):
-    return db.topics.update_one({
-        "_id": ObjectId(tid),
-        "questions.id": qid
-        }, 
-        {
-            "$set": {"questions.$.confidence": c}
-        })
 def get_topics(email):
     user = get_user(email)
     topic_ids = user["topics"]
     topics = db.topics.find({"_id": {"$in": topic_ids}})
     return topics.to_list()
 
-def has_access_to_topic(email, tid):
-    return ObjectId(tid) in get_user(email)["topics"]
 def get_topic(id):
     topics = db.topics.find_one({"_id": ObjectId(id)})
     return topics
@@ -51,8 +41,7 @@ def add_topic(email, title, questions, answers):
             {
                 "id": i,
                 "question": q, 
-                "answer": a,
-                "confidence": 0
+                "answer": a
             }
         )
     data = {
@@ -67,14 +56,13 @@ def edit_topic(id, form_data):
     data['title'] = form_data['title']
     
     questions = []
-    for q_id, (question, answer, confidence) in enumerate(zip( 
+    for q_id, (question, answer) in enumerate(zip( 
                                        form_data.getlist('questions[]'), 
-                                       form_data.getlist('answers[]'), form_data.getlist('confidence[]'))):
+                                       form_data.getlist('answers[]'))):
         questions.append({
             "id": q_id,
             "question": question,
-            "answer": answer,
-            "confidence": int(confidence)
+            "answer": answer
         })
     data["questions"] = questions
     db.topics.update_one({"_id": data["_id"]}, {"$set": data})
@@ -87,8 +75,7 @@ def delete_topic(id):
 def import_topic(email, title, df):
     if "id" not in df.columns:
         df["id"] = range(len(df))
-    df["confidence"] = df.get("confidence", 0)
-    df = df[["id", "question", "answer", "confidence"]]
+    df = df[["id", "question", "answer"]]
     questions = df.to_dict(orient="records")
     data = {
         "title": title,
@@ -391,13 +378,14 @@ def get_last_quiz(email, topic_id):
 def is_admin(email):
     return get_user(email)['is_admin']
 
-def get_topic_stats(tid):
+def get_topic_stats(tid, email):
     quiz_ids = [str(q['_id']) for q in db.quizes.find({'topic_id': ObjectId(tid)}, {'_id': 1}).to_list()]
-
+    user_id = get_user(email)['_id']
     return db.quizes_log.aggregate([
         {
             "$match": {
                 "event": "answered quizlet",
+                "user_id": user_id,
                 "data.quizid": {"$in": quiz_ids}
             }
         },
@@ -435,3 +423,33 @@ def get_topic_stats(tid):
             }
         }
     ]).to_list()
+
+def update_topic_visability(tid, state):
+    return db.topics.update_one({'_id': ObjectId(tid)}, {'$set': {"visability_state": state}})
+
+def get_topic_visability(tid):
+    return db.topics.find_one({'_id': ObjectId(tid)}).get('visability_state', 'private')
+
+def is_owner(email, tid):
+    return ObjectId(tid) in get_user(email)["topics"]
+
+def has_access_to_topic(email, tid):
+    if is_owner(email, tid):
+        return True
+    match get_topic_visability(tid):
+        case 'public':
+            return True
+        case 'restricted':
+            user_id = get_user(email)['_id']
+            return user_id in get_participants(tid)
+        case _:
+            return False
+
+def get_participants(tid):
+    return db.topics.find_one({'_id': ObjectId(tid)}).get('participants', [])
+
+def add_participant(tid, uid):
+    return db.topics.update_one({'_id': ObjectId(tid)}, {"$push": {'participants': uid}})
+
+def remove_participant(tid, uid):
+    return db.topics.update_one({'_id': ObjectId(tid)}, {"$pull": {'participants': uid}})

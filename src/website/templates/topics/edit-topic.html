@@ -159,23 +159,6 @@
     .add-question-btn:hover {
       transform: scale(1.1);
     }
-    .confidence-label {
-      display: block;
-      font-size: 16px;
-      font-family: 'Courier New', Courier, monospace;
-      color: #667eea;
-      margin-bottom: 5px;
-    }
-    select[name="confidence[]"] {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 16px;
-      font-family: 'Courier New', Courier, monospace;
-    }
   </style>
 </head>
 <body>
@@ -191,13 +174,6 @@
         <div class="question-container">
           <input type="text" name="questions[]" value="{{ question.question }}" required>
           <textarea name="answers[]" required>{{ question.answer }}</textarea>
-          
-          <label class="confidence-label">Confidence:</label>
-          <select name="confidence[]" onchange="updateSelectColor(this)">
-            <option value="2" style="color: green;" {% if question.confidence == 2 %}selected{% endif %}>Confident</option>
-            <option value="1" style="color: orange;" {% if question.confidence == 1 %}selected{% endif %}>Not sure</option>
-            <option value="0" style="color: red;" {% if question.confidence == 0 %}selected{% endif %}>Not confident</option>
-          </select>
           
           <button type="button" class="delete-btn" onclick="this.parentElement.remove(); validateForm();">Delete</button>
         </div>
@@ -235,8 +211,6 @@
       selectElement.style.color = color;
     }
     
-    document.querySelectorAll('select[name="confidence[]"]').forEach(select => updateSelectColor(select));
-    
     function addQuestion() {
       const container = document.getElementById('questions-container');
       const questionContainer = document.createElement('div');
@@ -253,28 +227,6 @@
       answerInput.placeholder = 'Enter the answer';
       answerInput.required = true;
       
-      const label = document.createElement('label');
-      label.className = 'confidence-label';
-      label.textContent = 'Confidence:';
-      
-      const select = document.createElement('select');
-      select.name = 'confidence[]';
-      select.onchange = function() { updateSelectColor(this); };
-      
-      const options = [
-        { value: "2", text: "Confident", color: "green" },
-        { value: "1", text: "Not sure", color: "orange" },
-        { value: "0", text: "Not confident", color: "red" }
-      ];
-      
-      options.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = opt.value;
-        option.textContent = opt.text;
-        option.style.color = opt.color;
-        select.appendChild(option);
-      });
-      
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
       deleteBtn.className = 'delete-btn';
@@ -286,8 +238,6 @@
       
       questionContainer.appendChild(questionInput);
       questionContainer.appendChild(answerInput);
-      questionContainer.appendChild(label);
-      questionContainer.appendChild(select);
       questionContainer.appendChild(deleteBtn);
       
       // Insert before the add button card
