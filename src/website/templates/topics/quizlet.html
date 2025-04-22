@@ -303,7 +303,7 @@
         }
         
         // Stopwatch functionality
-        const startTime = new Date("{{timeStarted}} UTC").getTime();
+        const startTime = new Date("{{timeStarted.isoformat()}}Z").getTime();
         function updateStopwatch() {
             const now = new Date().getTime();
             const elapsed = now - startTime;
