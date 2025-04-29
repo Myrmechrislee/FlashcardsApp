@@ -2,8 +2,9 @@ import os, hashlib, secrets
 from pymongo import MongoClient
 import gridfs
 from bson import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from enum import Enum
+from collections import defaultdict
 
 class SecurityLogSeverity(Enum):
     Critical = 4
@@ -164,7 +165,7 @@ def update_quiz_response(email, quizid, questionid, is_correct):
     db.quizes.update_one({'_id': ObjectId(quizid), "questions.id": int(questionid)}, {"$set": {'questions.$.correct': is_correct}})
     db.quizes_log.insert_one({
         "event": "answered quizlet",
-        "timestamp": datetime.now(),
+        "timestamp": datetime.utcnow(),
         "user_id": get_user(email)['_id'],
         "data": {
             "quizid": quizid,
@@ -453,3 +454,295 @@ def add_participant(tid, uid):
 
 def remove_participant(tid, uid):
     return db.topics.update_one({'_id': ObjectId(tid)}, {"$pull": {'participants': uid}})
+
+def get_analytics_data(tid, user_email):
+    topic = get_topic(tid)
+    user_id = get_user(user_email)['_id']
+    quiz_ids = [str(q['_id']) for q in db.quizes.find({'topic_id': ObjectId(tid)}, {'_id': 1}).to_list()]
+    total_stats = db.quizes_log.aggregate([
+        {
+            "$match": {
+                "event": "answered quizlet",
+                "user_id": user_id,
+                "data.quizid": {"$in": quiz_ids}
+            }
+        },
+        {
+            '$sort': {
+                'timestamp': 1
+            }
+        },
+        {
+            '$group': {
+                '_id': None,
+                'totalAttempts': { '$sum': 1 },
+                'correctCount': {
+                    '$sum': {
+                        '$cond': [{ '$eq': ["$data.correct", True] }, 1, 0]
+                    }
+                },
+                'wrongCount': {
+                    '$sum': {
+                        '$cond': [{ '$eq': ["$data.correct", False] }, 1, 0]
+                    }
+                },
+                'lastAttempt': { '$last': "$timestamp" }
+            }
+        },
+        {
+            "$project": {
+                'quizid': '$_id.quizid',
+                'qid': '$_id.qid',
+                'totalAttempts': 1,
+                'correctCount': 1,
+                'wrongCount': 1,
+                'lastAttempt': 1,
+                '_id': 0
+            }
+        }
+        ]).to_list()
+    
+    now = datetime.now()
+    last_week_start =( now - timedelta(days=now.weekday() + 7)).replace(hour=0, minute=0, second=0, microsecond=0)
+    last_week_end = (last_week_start + timedelta(days=6)).replace(hour=0, minute=0, second=0, microsecond=0)
+    this_week_start = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+    this_week_end = (this_week_start + timedelta(days=6)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    last_week_correct = db.quizes_log.count_documents({
+        "event": "answered quizlet",
+        "user_id": user_id,
+        "data.quizid": {"$in": quiz_ids},
+        "timestamp": {"$gte": last_week_start, "$lte": last_week_end},
+        "data.correct": True
+    })
+    last_week_total = db.quizes_log.count_documents({
+        "event": "answered quizlet",
+        "user_id": user_id,
+        "data.quizid": {"$in": quiz_ids},
+        "timestamp": {"$gte": last_week_start, "$lte": last_week_end}
+    })
+
+    this_week_correct = db.quizes_log.count_documents({
+        "event": "answered quizlet",
+        "user_id": user_id,
+        "data.quizid": {"$in": quiz_ids},
+        "timestamp": {"$gte": this_week_start, "$lte": this_week_end},
+        "data.correct": True
+    })
+    this_week_total = db.quizes_log.count_documents({
+        "event": "answered quizlet",
+        "user_id": user_id,
+        "data.quizid": {"$in": quiz_ids},
+        "timestamp": {"$gte": this_week_start, "$lte": this_week_end}
+    })
+
+    last_week_accuracy = (last_week_correct / last_week_total * 100) if last_week_total > 0 else 0
+    this_week_accuracy = (this_week_correct / this_week_total * 100) if this_week_total > 0 else 0
+
+    accuracy_trend = {
+        "last_week": last_week_accuracy,
+        "current": this_week_accuracy,
+        "change": this_week_accuracy - last_week_accuracy
+    }
+    pipeline = [
+        {
+            "$match": {
+                    "event": "answered quizlet",
+                    "user_id": user_id,
+                    "data.quizid": {"$in": quiz_ids}
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$data.questionid",
+                    "answers": {
+                        "$push": "$data.correct"
+                    },
+                    "timestamps": {
+                        "$push": "$timestamp"
+                    }
+                }
+            }
+        ]
+    grouped = db.quizes_log.aggregate(pipeline).to_list()
+
+    mastered = []
+    for question in grouped:
+        answers = sorted(zip(question['answers'], question['timestamps']), key=lambda x: x[1])
+        answers = list(answers)[-3:]
+        if len(answers) == 3 and all(a[0] for a in answers):
+            mastered.append(question['_id'])
+    
+    mastered_cards = {
+        "count": len(mastered)
+    }
+    results = db.quizes_log.aggregate([
+        {
+            "$match": {
+                "event": "answered quizlet",
+                "user_id": user_id,
+                "data.quizid": {"$in": quiz_ids}
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "questionid": "$data.questionid",
+                    "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$timestamp"}}
+                },
+                "correct_count": {
+                    "$sum": {
+                        "$cond": [{"$eq": ["$data.correct", True]}, 1, 0]
+                    }
+                },
+                "incorrect_count": {
+                    "$sum": {
+                        "$cond": [{"$eq": ["$data.correct", False]}, 1, 0]
+                    }
+                }
+            }
+        }
+    ]).to_list()
+    # Aggregate correct and incorrect counts per day
+    daily_stats = defaultdict(lambda: {"correct": 0, "incorrect": 0})
+
+    for r in results:
+        date = r['_id']['date']
+        daily_stats[date]["correct"] += r.get("correct_count", 0)
+        daily_stats[date]["incorrect"] += r.get("incorrect_count", 0)
+
+    # Convert to a sorted list of tuples (date, correct, incorrect)
+    daily_totals = sorted(
+        [(date, stats["correct"], stats["incorrect"]) for date, stats in daily_stats.items()],
+        key=lambda x: x[0]
+    )
+    activity_data = {
+        "labels": [date for date, _, _ in daily_totals],
+        "correct": [correct for _, correct, _ in daily_totals],
+        "incorrect": [incorrect for _, _, incorrect in daily_totals]
+    }
+    card_accuracy = {}
+    for q in grouped:
+        answers = q['answers']
+        total = len(answers)
+        correct = sum(1 for a in answers if a)
+        accuracy = (correct / total) * 100 if total > 0 else 0
+        card_accuracy[q['_id']] = accuracy
+
+    # Count cards by accuracy level
+    high = sum(1 for acc in card_accuracy.values() if acc >= 70)
+    medium = sum(1 for acc in card_accuracy.values() if 40 <= acc < 70)
+    low = sum(1 for acc in card_accuracy.values() if acc < 40)
+
+    accuracy_distribution = {
+        "high": high,
+        "medium": medium,
+        "low": low
+    }
+    question_info_list = []
+    topic = db.topics.find_one({"_id": ObjectId(tid)})
+    for question in topic['questions']:
+        question_id = str(question['id'])
+        # Calculate accuracy for this question for last week and this week
+        # Get logs for last week
+        last_week_total = db.quizes_log.count_documents({
+            "event": "answered quizlet",
+            "user_id": user_id,
+            "data.quizid": {"$in": quiz_ids},
+            "data.questionid": question_id,
+            "timestamp": {"$gte": last_week_start, "$lte": last_week_end}
+        })
+        last_week_correct = db.quizes_log.count_documents({
+            "event": "answered quizlet",
+            "user_id": user_id,
+            "data.quizid": {"$in": quiz_ids},
+            "data.questionid": question_id,
+            "timestamp": {"$gte": last_week_start, "$lte": last_week_end},
+            "data.correct": True
+        })
+        last_week_acc = (last_week_correct / last_week_total * 100) if last_week_total > 0 else 0
+
+        # Get logs for this week
+        this_week_total = db.quizes_log.count_documents({
+            "event": "answered quizlet",
+            "user_id": user_id,
+            "data.quizid": {"$in": quiz_ids},
+            "data.questionid": question_id,
+            "timestamp": {"$gte": this_week_start, "$lte": this_week_end}
+        })
+        this_week_correct = db.quizes_log.count_documents({
+            "event": "answered quizlet",
+            "user_id": user_id,
+            "data.quizid": {"$in": quiz_ids},
+            "data.questionid": question_id,
+            "timestamp": {"$gte": this_week_start, "$lte": this_week_end},
+            "data.correct": True
+        })
+        this_week_acc = (this_week_correct / this_week_total * 100) if this_week_total > 0 else 0
+
+        history_dates = db.quizes_log.distinct(
+            "timestamp",
+            {
+                "event": "answered quizlet",
+                "user_id": user_id,
+                "data.quizid": {"$in": quiz_ids},
+                "data.questionid": question_id
+            }
+        )
+        history_dates = list(sorted(set([dt.date() for dt in history_dates])))
+        # Prepare accuracy history for this question at each date in labels
+        accuracy = []
+        for date in history_dates:
+            # For each date, calculate accuracy for this question
+            correct = db.quizes_log.count_documents({
+                "event": "answered quizlet",
+                "user_id": user_id,
+                "data.quizid": {"$in": quiz_ids},
+                "data.questionid": question_id,
+                "timestamp": {
+                    "$lt": datetime.combine(date + timedelta(days=1), time.min)
+                },
+                "data.correct": True
+            })
+            total = db.quizes_log.count_documents({
+                "event": "answered quizlet",
+                "user_id": user_id,
+                "data.quizid": {"$in": quiz_ids},
+                "data.questionid": question_id,
+                "timestamp": {
+                    "$lt": datetime.combine(date + timedelta(days=1), time.min)
+                }
+            })
+            accuracy.append(round((correct / total * 100) if total > 0 else 0, 1))
+        question_info_list.append({
+            "id": question_id,
+            "question": question['question'],
+            "attempts": db.quizes_log.count_documents({'event': 'answered quizlet', "data.quizid": {"$in": quiz_ids}, "data.questionid": question_id, "user_id": user_id}),
+            "correct": db.quizes_log.count_documents({'event': 'answered quizlet', "data.quizid": {"$in": quiz_ids}, "data.questionid": question_id, "user_id": user_id, "data.correct": True}),
+            "mastered": question_id in mastered,
+            "last_week_accuracy": last_week_acc,
+            "this_week_accuracy": this_week_acc,
+            "trend": {
+                "change": this_week_acc - last_week_acc
+            },
+            "history": {
+                "labels": [d.strftime("%Y-%m-%d") for d in history_dates],
+                "accuracy": accuracy
+            }
+        })
+    total_stats_data = total_stats[0] if total_stats else {
+        'totalAttempts': 0,
+        'correctCount': 0,
+        'wrongCount': 0,
+        'lastAttempt': None
+    }
+    return {
+        "t": topic,
+        "total_stats": total_stats_data,
+        "accuracy_trend": accuracy_trend,
+        "mastered_cards": mastered_cards,
+        "activity_data": activity_data,
+        "accuracy_distribution": accuracy_distribution,
+        "questions": question_info_list,
+        "is_owner": is_owner(user_email, tid)
+    }

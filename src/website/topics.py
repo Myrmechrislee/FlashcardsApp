@@ -266,3 +266,15 @@ def remove_participant(topic_id):
     db.remove_participant(topic_id, user['_id'])
 
     return jsonify({"success": True})
+
+@bp.route('/analytics/<topic_id>')
+def analytics(topic_id):
+    if not OBJECT_ID_PATTERN.match(topic_id):
+        abort(404)
+    topic = db.get_topic(topic_id)
+    if topic == None:
+        abort(404)
+    if not db.has_access_to_topic(session["email"], topic_id):
+        abort(403)
+    data = db.get_analytics_data(topic_id, session['email'])
+    return render_template("topics/analytics.html", **data)

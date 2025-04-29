@@ -559,6 +559,57 @@
                 padding: 8px 12px;
             }
         }
+        .analytics-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .analytics-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .new-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4757;
+            color: white;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Adjust for desktop */
+        @media (min-width: 768px) {
+            .analytics-link {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+            
+            .new-badge {
+                font-size: 9px;
+                padding: 2px 5px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -632,10 +683,15 @@
                     <button class="add-participant-btn" id="add-participant-btn">Add</button>
                 </div>
             </div>
+            <div class="separator"></div>
             {% if is_owner %}
             <a href="/edit-topic/{{t["_id"]}}" class="edit-link"><i class="fas fa-edit"></i> Edit</a>
             {% endif %}
             <a href="/export-csv/{{t["_id"]}}" class="export-btn"><i class="fas fa-file-export"></i> Export as CSV</a>
+            <a href="/analytics/{{t["_id"]}}" class="analytics-link">
+                <i class="fas fa-chart-line"></i> Analytics
+                <span class="new-badge">New</span>
+            </a>
         </div>
 
         <!-- Right Panel -->

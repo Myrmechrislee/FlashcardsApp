@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic Analytics</title>
+    <!-- FontAwesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #f8f8f8;
+            margin: 0;
+            position: relative;
+            padding-top: 50px; /* Space for the fixed navbar */
+        }
+
+        /* Fixed Top Navbar */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            z-index: 1000;
+        }
+
+        .go-back {
+            font-weight: bold;
+            color: grey;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 5px 10px;
+            border: 2px solid grey;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: fit-content;
+        }
+
+        .go-back:hover {
+            background: grey;
+            color: white;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .left-panel {
+            width: 100%;
+            padding: 20px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .left-panel h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .time-range-selector {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: monospace;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-title i {
+            margin-right: 10px;
+            color: #764ba2;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-card h3 i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .stat-card .trend {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 14px;
+        }
+
+        .trend-up {
+            color: #28a745;
+        }
+
+        .trend-down {
+            color: #dc3545;
+        }
+
+        .trend-neutral {
+            color: #6c757d;
+        }
+
+        .stat-card .description {
+            font-size: 14px;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .question-performance {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .performance-table th, 
+        .performance-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .performance-table th {
+            font-weight: bold;
+            color: #555;
+            background-color: #f9f9f9;
+        }
+
+        .performance-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .accuracy-cell {
+            font-weight: bold;
+        }
+
+        .accuracy-high {
+            color: #28a745;
+        }
+
+        .accuracy-medium {
+            color: #ffc107;
+        }
+
+        .accuracy-low {
+            color: #dc3545;
+        }
+
+        .mastered-icon {
+            color: #28a745;
+            margin-left: 5px;
+            cursor: help;
+        }
+
+        .go-back-laptop {
+            display: none;
+        }
+
+        .card-chart-container {
+            height: 200px;
+            margin-top: 15px;
+        }
+
+        .hint {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            border-radius: 50%;
+            background: #ddd;
+            color: #555;
+            font-size: 14px;
+            cursor: help;
+            margin-left: 5px;
+            position: relative;
+        }
+        
+        .hint:hover {
+            background: #764ba2;
+            color: white;
+        }
+
+        .hint-text {
+            display: none;
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            width: 220px;
+            font-size: 14px;
+            z-index: 10;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .hint:hover .hint-text {
+            display: block;
+        }
+
+        /* For mobile/touch devices */
+        .hint.active .hint-text {
+            display: block;
+        }
+
+        /* Media query for larger phones in landscape */
+        @media (min-width: 576px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Media query for tablets and larger */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                height: 100vh;
+                padding-top: 0;
+            }
+            
+            .go-back-laptop {
+                display: block;
+            }
+            
+            .top-navbar {
+                display: none;
+            }
+            
+            .container {
+                flex-direction: row;
+                height: 100%;
+            }
+            
+            .left-panel {
+                width: 30%;
+                padding: 20px;
+                position: static;
+                overflow-y: auto;
+            }
+            
+            .right-panel {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+            }
+            
+            .go-back {
+                position: static;
+                margin-bottom: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Additional responsive adjustments */
+        @media (max-width: 768px) {
+            .chart-container {
+                padding: 10px;
+            }
+            
+            .performance-table th, 
+            .performance-table td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+            .hint-text {
+                right: auto;
+                left: 25px;
+                transform: translateX(-100%) translateY(-50%);
+            }
+
+        }
+        /* Add these styles to your existing CSS */
+        .stats-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .stat-card {
+            padding: 10px;
+            min-height: 120px;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 20px;
+        }
+
+        .stat-card .description {
+            font-size: 12px;
+        }
+
+        /* Adjust chart containers */
+        .chart-container {
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        /* For larger screens */
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .stat-card {
+                min-height: 140px;
+            }
+        }
+
+        /* For even larger screens */
+        @media (min-width: 992px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Top Navbar for Mobile -->
+    <div class="top-navbar">
+        <a href="/topic/{{t['_id']}}" class="go-back"><i class="fas fa-arrow-left"></i> Go Back</a>
+    </div>
+
+    <div class="container">
+        <div class="left-panel">
+            <a href="/topic-start/{{t['_id']}}" class="go-back"><i class="fas fa-arrow-left"></i> Go Back</a>
+            <h1><i class="fas fa-chart-line"></i> {{t["title"]}} Analytics</h1>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3><i class="fas fa-check-circle"></i> Total Correct</h3>
+                    <div class="value">{{total_stats.correctCount}}</div>
+                    <div class="description">All-time correct answers</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3><i class="fas fa-times-circle"></i> Total Incorrect</h3>
+                    <div class="value">{{total_stats.wrongCount}}</div>
+                    <div class="description">All-time incorrect answers</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3><i class="fas fa-bullseye"></i> Overall Accuracy</h3>
+                    <div class="value">
+                        {% if total_stats['totalAttempts'] > 0 %}
+                            {{ (total_stats.correctCount / total_stats.totalAttempts * 100) | round(1) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                    <div class="description">Success rate across all questions</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3><i class="fas fa-clock"></i> Last Practice</h3>
+                    <div class="value">
+                        {% if total_stats.lastAttempt %}
+                            {{ total_stats.lastAttempt.strftime('%Y/%m/%d') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </div>
+                    <div class="description">Most recent study session</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3><i class="fas fa-chart-line"></i> Accuracy Trend</h3>
+                    <div class="value">
+                        {% if accuracy_trend.change != 0 %}
+                            {{ accuracy_trend.current | round(1) }}%
+                            <p class="trend {% if accuracy_trend.change > 0 %}trend-up{% elif accuracy_trend.change < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                                <i class="fas fa-arrow-{% if accuracy_trend.change > 0 %}up{% else %}down{% endif %}"></i>
+                                {{ accuracy_trend.change | abs | round(1)}}%
+                            </p>
+                        {% else %}
+                            {{ accuracy_trend.current | round(1) }}%
+                            <p class="trend trend-neutral">No change</p>
+                        {% endif %}
+                    </div>
+                    <div class="description">Compared to previous period</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3><i class="fas fa-trophy"></i> Cards Mastered
+                        <span class="hint" tabindex="0"><i class="fas fa-info-circle"></i>
+                            <span class="hint-text">Cards mastered have been answered correctly 3 times in a row</span>
+                        </span>
+                    </h3>
+                    <div class="value">
+                        {{ mastered_cards.count }} <small>({{ (mastered_cards.count / t['questions']|length * 100) | round(1) }}%)</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title"><i class="fas fa-calendar-alt"></i> Activity Over Time</div>
+                <canvas id="activityChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title"><i class="fas fa-chart-pie"></i> Accuracy Distribution</div>
+                <canvas id="accuracyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="analytics-header">
+                <h2><i class="fas fa-question-circle"></i> Question Performance</h2>
+                <!-- <select class="time-range-selector" id="timeRange">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="all">All Time</option>
+                </select> -->
+            </div>
+            
+            <div class="question-performance">
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>Attempts</th>
+                            <th>Correct</th>
+                            <th>Accuracy</th>
+                            <th>Last Week</th>
+                            <th>This Week</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in questions %}
+                        <tr>
+                            <td>
+                                {{ q.question | truncate(50) }}
+                                {% if q.mastered %}
+                                    <i class="fas fa-check-circle mastered-icon" title="Mastered (3 correct in a row)"></i>
+                                {% endif %}
+                            </td>
+                            <td>{{ q.attempts }}</td>
+                            <td>{{ q.correct }}</td>
+                            <td class="accuracy-cell 
+                                {% if q.attempts > 0 %}
+                                    {% set accuracy = (q.correct / q.attempts * 100) %}
+                                    {% if accuracy >= 70 %}accuracy-high
+                                    {% elif accuracy >= 40 %}accuracy-medium
+                                    {% else %}accuracy-low
+                                    {% endif %}
+                                {% endif %}">
+                                {% if q.attempts > 0 %}
+                                    {{ (q.correct / q.attempts * 100) | round(1) }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if q.last_week_accuracy is defined %}
+                                    {{ q.last_week_accuracy | round(1) }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if q.this_week_accuracy is defined %}
+                                    {{ q.this_week_accuracy | round(1) }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if q.trend.change != 0 %}
+                                    <span class="trend {% if q.trend.change > 0 %}trend-up{% elif q.trend.change < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                                        <i class="fas fa-arrow-{% if q.trend.change > 0 %}up{% else %}down{% endif %}"></i>
+                                        {{ q.trend.change | abs }}%
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="7" style="padding: 0; border-bottom: 1px solid #eee;">
+                                <div class="card-chart-container">
+                                    <canvas id="cardChart{{ loop.index }}"></canvas>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Activity Over Time Chart
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            const activityChart = new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ activity_data.labels | tojson }},
+                    datasets: [
+                        {
+                            label: 'Correct Answers',
+                            data: {{ activity_data.correct | tojson }},
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Incorrect Answers',
+                            data: {{ activity_data.incorrect | tojson }},
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Accuracy Distribution Chart
+            const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+            const accuracyChart = new Chart(accuracyCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High (≥70%)', 'Medium (40-69%)', 'Low (<40%)'],
+                    datasets: [{
+                        data: [
+                            {{ accuracy_distribution.high }},
+                            {{ accuracy_distribution.medium }},
+                            {{ accuracy_distribution.low }}
+                        ],
+                        backgroundColor: [
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Create charts for each question
+            {% for q in questions %}
+            const ctx{{ loop.index }} = document.getElementById('cardChart{{ loop.index }}').getContext('2d');
+            new Chart(ctx{{ loop.index }}, {
+                type: 'line',
+                data: {
+                    labels: {{ q.history.labels | tojson }},
+                    datasets: [{
+                        label: 'Accuracy',
+                        data: {{ q.history.accuracy | tojson }},
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw}% accuracy`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            {% endfor %}
+
+            // Time range selector functionality
+            const timeRangeSelector = document.getElementById('timeRange');
+            timeRangeSelector.addEventListener('change', function() {
+                // In a real implementation, this would fetch new data based on the time range
+                console.log('Time range changed to:', this.value);
+                // You would typically make an AJAX call here to update the charts and table
+                // For now, we'll just log the selection
+            });
+
+            // Initialize hint tooltips
+            const hintElements = document.querySelectorAll('.hint');
+            hintElements.forEach(hint => {
+                hint.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+
+                // Close tooltip when clicking elsewhere
+                document.addEventListener('click', function(event) {
+                    if (!event.target.closest('.hint')) {
+                        hintElements.forEach(h => h.classList.remove('active'));
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
