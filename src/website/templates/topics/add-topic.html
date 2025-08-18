@@ -7,9 +7,9 @@
   <style>
     body {
       background-color: #f8f8f8;
-      font-family: Arial, sans-serif;
+      font-family: 'Courier New', Courier, monospace;
       margin: 0;
-      padding: 0;
+      padding: 20px 20px 80px; /* Added bottom padding for fixed navbar */
     }
     .form-container {
       background-color: white;
@@ -17,135 +17,221 @@
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
       box-sizing: border-box;
+      margin-bottom: 20px;
     }
     h2, h3 {
       margin-bottom: 20px;
       text-align: center;
     }
+    #questions-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .question-container {
+      width: calc(50% - 10px);
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border: 1px solid #eee;
+      box-sizing: border-box;
+    }
     input[type="text"], textarea {
       width: 100%;
-      padding: 15px;
+      padding: 12px;
       margin-bottom: 10px;
       border: 1px solid #ddd;
       border-radius: 8px;
       box-sizing: border-box;
-      font-size: 18px;
-      font-family: monospace;
+      font-size: 16px;
+      font-family: 'Courier New', Courier, monospace;
     }
     textarea {
       resize: vertical;
-      min-height: 120px;
-    }
-    .question-container {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 20px;
+      min-height: 100px;
     }
     .delete-btn {
-      padding: 10px 20px;
+      padding: 8px 16px;
       border: 2px solid red;
       border-radius: 8px;
       background: transparent;
       color: red;
-      font-size: 16px;
-      font-family: monospace;
+      font-size: 14px;
+      font-family: 'Courier New', Courier, monospace;
       cursor: pointer;
       transition: background 0.3s, color 0.3s;
-      align-self: flex-start;
     }
     .delete-btn:hover {
       background: red;
       color: white;
     }
-    .button-group button {
-      padding: 15px 30px;
+    /* Bottom Navbar Styles */
+    .bottom-navbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 15px 20px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      z-index: 1000;
+    }
+    .nav-button {
+      padding: 12px 24px;
       border: 2px solid;
       border-radius: 8px;
       background: transparent;
       cursor: pointer;
+      transition: all 0.3s;
+      font-size: 16px;
+      font-family: 'Courier New', Courier, monospace;
       text-decoration: none;
-      transition: background 0.3s, color 0.3s;
-      font-size: 18px;
-      font-family: monospace;
-      margin-top: 10px;
+    }
+    .save-btn {
       border-image-slice: 1;
       border-image-source: linear-gradient(135deg, #667eea, #764ba2);
       color: #667eea;
     }
-    .button-group button:hover {
+    .save-btn:hover:enabled {
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
     }
-    .back-button {
+    .save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .back-btn {
+      border: 2px solid grey;
       color: grey;
-      text-decoration: none;
-      font-size: 18px;
-      font-family: monospace;
-      margin-top: 10px;
-      margin-left: 10px;
+    }
+    .back-btn:hover {
+      background: grey;
+      color: white;
+    }
+    .add-question-card {
+      width: calc(50% - 10px);
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border: 2px dashed #ccc;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .add-question-card:hover {
+      border-color: #667eea;
+      background-color: #f5f7ff;
+    }
+    .add-question-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .add-question-btn:hover {
+      transform: scale(1.1);
     }
   </style>
-  <script>
-    function addQuestion() {
-      const container = document.getElementById('questions-container');
-      const inputs = container.querySelectorAll('input, textarea');
-      for (let input of inputs) {
-        if (input.value.trim() === '') {
-          alert('Please fill in all question and answer fields before adding more.');
-          return;
-        }
-      }
-      const questionContainer = document.createElement('div');
-      questionContainer.className = 'question-container';
-
-      const questionInput = document.createElement('input');
-      questionInput.type = 'text';
-      questionInput.name = 'questions[]';
-      questionInput.placeholder = 'Enter a question';
-      questionInput.style.fontFamily = 'monospace';
-
-      const answerInput = document.createElement('textarea');
-      answerInput.name = 'answers[]';
-      answerInput.placeholder = 'Enter the answer';
-      answerInput.style.minHeight = '120px';
-      answerInput.style.fontFamily = 'monospace';
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.type = 'button';
-      deleteBtn.className = 'delete-btn';
-      deleteBtn.textContent = 'Delete';
-      deleteBtn.onclick = function() { container.removeChild(questionContainer); };
-
-      questionContainer.appendChild(questionInput);
-      questionContainer.appendChild(answerInput);
-      questionContainer.appendChild(deleteBtn);
-
-      container.appendChild(questionContainer);
-    }
-  </script>
 </head>
 <body>
   <div class="form-container">
     <h2>Add New Topic</h2>
-    <h3>Topic Title</h3>
-    <form action="/add-topic" method="POST" style="width: 100%; display: flex; flex-direction: column;">
-      <input type="text" id="title" name="title" placeholder="Enter topic title" required>
+    <form id="topic-form" action="/add-topic" method="POST" oninput="validateForm()">
+      <h3>Topic Title</h3>
+      <input type="text" name="title" placeholder="Enter topic title" required>
 
       <h3>Questions and Answers</h3>
-      <div id="questions-container" style="width: 100%;">
+      <div id="questions-container">
         <div class="question-container">
-          <input type="text" name="questions[]" placeholder="Enter a question" required style="font-family: monospace;">
-          <textarea name="answers[]" placeholder="Enter the answer" required style="min-height: 120px; font-family: monospace;"></textarea>
-          <button type="button" class="delete-btn" onclick="this.parentElement.remove()">Delete</button>
+          <input type="text" name="questions[]" placeholder="Enter a question" required>
+          <textarea name="answers[]" placeholder="Enter the answer" required></textarea>
+          <button type="button" class="delete-btn" onclick="this.parentElement.remove(); validateForm();">Delete</button>
         </div>
-      </div>
-      <div class="button-group">
-        <button type="button" onclick="addQuestion()">Add Question</button>
-        <button type="submit">Create Topic</button>
-        <a href="/topics" class="back-button" style="margin-top: 10px; margin-left: 10px;">Go Back</a>
+        
+        <!-- Add Question Card Button -->
+        <div class="add-question-card" onclick="addQuestion()">
+          <button type="button" class="add-question-btn">+</button>
+        </div>
       </div>
     </form>
   </div>
+
+  <!-- Bottom Navigation Bar -->
+  <div class="bottom-navbar">
+    <button type="submit" form="topic-form" class="nav-button save-btn" id="save-btn" disabled>Create Topic</button>
+    <a href="/topics" class="nav-button back-btn">Go Back</a>
+  </div>
+
+  <script>
+    function addQuestion() {
+      const container = document.getElementById('questions-container');
+      const questionContainer = document.createElement('div');
+      questionContainer.className = 'question-container';
+      
+      const questionInput = document.createElement('input');
+      questionInput.type = 'text';
+      questionInput.name = 'questions[]';
+      questionInput.placeholder = 'Enter a question';
+      questionInput.required = true;
+      
+      const answerInput = document.createElement('textarea');
+      answerInput.name = 'answers[]';
+      answerInput.placeholder = 'Enter the answer';
+      answerInput.required = true;
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = function() { 
+        container.removeChild(questionContainer); 
+        validateForm(); 
+      };
+      
+      questionContainer.appendChild(questionInput);
+      questionContainer.appendChild(answerInput);
+      questionContainer.appendChild(deleteBtn);
+      
+      // Insert before the add button card
+      const addCard = document.querySelector('.add-question-card');
+      container.insertBefore(questionContainer, addCard);
+      
+      validateForm();
+    }
+
+    function validateForm() {
+      const inputs = document.querySelectorAll('input[name="questions[]"], textarea[name="answers[]"], input[name="title"]');
+      const saveButton = document.getElementById('save-btn');
+      let isValid = true;
+      
+      inputs.forEach(input => {
+        if (input.value.trim() === '') {
+          isValid = false;
+        }
+      });
+      
+      saveButton.disabled = !isValid;
+    }
+  </script>
 </body>
 </html>
